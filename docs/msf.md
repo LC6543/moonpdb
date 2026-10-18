@@ -27,10 +27,10 @@ metadata. `MsfFile::stream` validates every referenced block before reading.
 
 ## Current boundary
 
-The MSF layer is intentionally transport-free and allocation-bounded. PDB Info,
-TPI/IPI, DBI, module streams, public/global symbols, and line tables are later
-milestones. The current package must not be treated as a complete PDB symbol
-reader.
+The MSF layer is intentionally transport-free and allocation-bounded. The PDB
+Info stream is now parsed on top of it. TPI/IPI, DBI, module streams,
+public/global symbols, and line tables are later milestones. The current
+package must not be treated as a complete PDB symbol reader.
 
 ## Format references
 

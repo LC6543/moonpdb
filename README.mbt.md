@@ -19,9 +19,10 @@ separate Microsoft format that is not read by DWARF parsers.
 
 Initial review stage. The API is not stable.
 
-The current milestone parses the MSF superblock and stream directory, then
-returns bounded stream bytes. See [docs/msf.md](docs/msf.md) for the supported
-layout and API boundary.
+The current milestones parse the MSF container and the PDB Info stream,
+including GUID/age, named streams, and feature codes. See
+[docs/msf.md](docs/msf.md) and [docs/pdb-info.md](docs/pdb-info.md) for the
+supported layout and API boundaries.
 
 ## License
 

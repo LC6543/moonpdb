@@ -62,4 +62,4 @@ PDB 文件不是简单的记录流。外层是 MSF 容器，内部有 stream dir
 
 ## 当前阶段
 
-本次申报对应初审版本：完成独立工程、MSF 容器解析、stream directory 和基础测试。TPI、DBI、符号解析和 CLI 作为后续里程碑逐步提交。
+本次申报对应初审版本：完成独立工程、MSF 容器解析、stream directory、PDB Info stream、命名 stream map 和基础测试。TPI、DBI、符号解析和 CLI 作为后续里程碑逐步提交。
