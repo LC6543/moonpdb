@@ -1,5 +1,5 @@
 ///|
-const TEST_BLOCK_SIZE : Int = 4096
+const TEST_BLOCK_SIZE : Int32 = 4096
 
 ///|
 fn padded_test_block(contents : Bytes) -> Bytes {
@@ -23,7 +23,9 @@ fn test_stream_two_data() -> Bytes {
 ///|
 fn test_superblock() -> Bytes {
   let buffer = Buffer::Buffer(size_hint=56)
-  buffer.write_bytes(b"Microsoft C/C++ MSF 7.00\r\n\x1aDS\x00\x00\x00".exact_view())
+  buffer.write_bytes(
+    b"Microsoft C/C++ MSF 7.00\r\n\x1aDS\x00\x00\x00".exact_view(),
+  )
   buffer.write_uint_le(4096U)
   buffer.write_uint_le(1U)
   buffer.write_uint_le(8U)
@@ -63,14 +65,10 @@ fn make_test_msf() -> Bytes {
   file.write_bytes(padded_test_block(test_block_map()).exact_view())
   file.write_bytes(padded_test_block(test_directory()).exact_view())
   file.write_bytes(
-    padded_test_block(
-      stream_two.exact_view(start=0, end=4096).to_owned(),
-    ).exact_view(),
+    padded_test_block(stream_two.exact_view(start=0, end=4096).to_owned()).exact_view(),
   )
   file.write_bytes(
-    padded_test_block(
-      stream_two.exact_view(start=4096, end=6000).to_owned(),
-    ).exact_view(),
+    padded_test_block(stream_two.exact_view(start=4096, end=6000).to_owned()).exact_view(),
   )
   file.write_bytes(padded_test_block(b"PDBINFO!").exact_view())
   file.to_bytes()
@@ -108,7 +106,8 @@ test "reject malformed MSF headers" {
     _ => fail("expected short header to be rejected")
   }
   let bad_magic = make_test_msf()
-  let corrupted = b"X" + bad_magic.exact_view(start=1, end=bad_magic.length()).to_owned()
+  let corrupted = b"X" +
+    bad_magic.exact_view(start=1, end=bad_magic.length()).to_owned()
   try parse_msf_header(corrupted, MsfLimits::default()) catch {
     BadMagic => ()
     _ => fail("unexpected magic error")

@@ -19,14 +19,7 @@ repository = "https://github.com/LC6543/moonpdb"
 
 license = "Apache-2.0"
 
-keywords = [
-  "pdb",
-  "msf",
-  "windows",
-  "debug-info",
-  "symbols",
-  "binary",
-]
+keywords = [ "pdb", "msf", "windows", "debug-info", "symbols", "binary" ]
 
 preferred_target = "wasm-gc"
 

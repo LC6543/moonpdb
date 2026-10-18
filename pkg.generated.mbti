@@ -1,0 +1,67 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "LC6543/moonpdb"
+
+// Values
+pub fn parse_msf(Bytes, MsfLimits) -> MsfFile raise MsfError
+
+pub fn parse_msf_header(Bytes, MsfLimits) -> MsfHeader raise MsfError
+
+// Errors
+pub suberror MsfError {
+  TooSmall(Int)
+  BadMagic
+  UnsupportedBlockSize(Int)
+  InvalidBlockCount(Int)
+  InvalidFreeBlockMap(Int)
+  InvalidBlockIndex(Int)
+  Truncated(Int)
+  InvalidDirectory(String)
+  InvalidStream(Int)
+  LimitExceeded(String)
+  InvalidValue(String)
+}
+
+// Types and methods
+pub struct MsfFile {
+  data : Bytes
+  header : MsfHeader
+  streams : Array[MsfStream]
+}
+pub fn MsfFile::header(Self) -> MsfHeader
+pub fn MsfFile::stream(Self, Int) -> Bytes raise MsfError
+pub fn MsfFile::stream_count(Self) -> Int
+pub fn MsfFile::stream_info(Self, Int) -> MsfStream raise MsfError
+
+pub struct MsfHeader {
+  block_size : Int
+  free_block_map_block : Int
+  num_blocks : Int
+  num_directory_bytes : Int
+  block_map_addr : Int
+}
+pub fn MsfHeader::block_map_addr(Self) -> Int
+pub fn MsfHeader::block_size(Self) -> Int
+pub fn MsfHeader::free_block_map_block(Self) -> Int
+pub fn MsfHeader::num_blocks(Self) -> Int
+pub fn MsfHeader::num_directory_bytes(Self) -> Int
+
+pub struct MsfLimits {
+  max_file_bytes : Int
+  max_directory_bytes : Int
+  max_streams : Int
+  max_stream_bytes : Int
+}
+pub fn MsfLimits::default() -> Self
+
+pub struct MsfStream {
+  index : Int
+  size : Int
+  blocks : Array[Int]
+}
+pub fn MsfStream::block_count(Self) -> Int
+pub fn MsfStream::index(Self) -> Int
+pub fn MsfStream::size(Self) -> Int
+
+// Type aliases
+
+// Traits

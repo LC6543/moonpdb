@@ -1,10 +1,10 @@
 ///|
 /// Resource limits for parsing untrusted MSF files.
 pub struct MsfLimits {
-  max_file_bytes : Int
-  max_directory_bytes : Int
-  max_streams : Int
-  max_stream_bytes : Int
+  max_file_bytes : Int32
+  max_directory_bytes : Int32
+  max_streams : Int32
+  max_stream_bytes : Int32
 }
 
 ///|

@@ -8,21 +8,17 @@ fn assemble_test_msf(block_map : Bytes, directory : Bytes) -> Bytes {
   file.write_bytes(padded_test_block(block_map).exact_view())
   file.write_bytes(padded_test_block(directory).exact_view())
   file.write_bytes(
-    padded_test_block(
-      stream_two.exact_view(start=0, end=4096).to_owned(),
-    ).exact_view(),
+    padded_test_block(stream_two.exact_view(start=0, end=4096).to_owned()).exact_view(),
   )
   file.write_bytes(
-    padded_test_block(
-      stream_two.exact_view(start=4096, end=6000).to_owned(),
-    ).exact_view(),
+    padded_test_block(stream_two.exact_view(start=4096, end=6000).to_owned()).exact_view(),
   )
   file.write_bytes(padded_test_block(b"PDBINFO!").exact_view())
   file.to_bytes()
 }
 
 ///|
-fn test_directory_with_stream_block(block : UInt) -> Bytes {
+fn test_directory_with_stream_block(block : UInt32) -> Bytes {
   let buffer = Buffer::Buffer(size_hint=28)
   buffer.write_uint_le(3U)
   buffer.write_uint_le(0U)
@@ -62,7 +58,9 @@ test "reject an invalid stream block index" {
 ///|
 test "reject unsupported block sizes and free block maps" {
   let buffer = Buffer::Buffer(size_hint=56)
-  buffer.write_bytes(b"Microsoft C/C++ MSF 7.00\r\n\x1aDS\x00\x00\x00".exact_view())
+  buffer.write_bytes(
+    b"Microsoft C/C++ MSF 7.00\r\n\x1aDS\x00\x00\x00".exact_view(),
+  )
   buffer.write_uint_le(123U)
   buffer.write_uint_le(1U)
   buffer.write_uint_le(1U)
@@ -77,7 +75,9 @@ test "reject unsupported block sizes and free block maps" {
     _ => fail("expected unsupported block size to be rejected")
   }
   let buffer = Buffer::Buffer(size_hint=56)
-  buffer.write_bytes(b"Microsoft C/C++ MSF 7.00\r\n\x1aDS\x00\x00\x00".exact_view())
+  buffer.write_bytes(
+    b"Microsoft C/C++ MSF 7.00\r\n\x1aDS\x00\x00\x00".exact_view(),
+  )
   buffer.write_uint_le(4096U)
   buffer.write_uint_le(0U)
   buffer.write_uint_le(1U)
