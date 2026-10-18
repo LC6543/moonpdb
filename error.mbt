@@ -13,3 +13,12 @@ pub suberror MsfError {
   LimitExceeded(String)
   InvalidValue(String)
 }
+
+///|
+/// Errors raised while reading the PDB Info stream.
+pub suberror PdbInfoError {
+  TruncatedInfo(Int32)
+  InvalidInfoValue(String)
+  InvalidNamedStream(String)
+  LimitExceededInfo(String)
+}
