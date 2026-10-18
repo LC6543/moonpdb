@@ -131,8 +131,9 @@ pub fn PdbInfo::guid_string(self : PdbInfo) -> String {
 pub fn MsfFile::pdb_info(
   self : MsfFile,
   limits : PdbInfoLimits,
-) -> PdbInfo raise {
-  parse_pdb_info(self.stream(1), self.stream_count(), limits)
+) -> PdbInfo raise PdbInfoError {
+  let info_bytes = self.stream(1) catch { _ => raise InfoStreamUnavailable }
+  parse_pdb_info(info_bytes, self.stream_count(), limits)
 }
 
 ///|
@@ -141,18 +142,18 @@ pub fn parse_pdb_info(
   data : Bytes,
   msf_stream_count : Int32,
   limits : PdbInfoLimits,
-) -> PdbInfo raise {
+) -> PdbInfo raise PdbInfoError {
   if data.length() < 28 {
     raise TruncatedInfo(data.length())
   }
   if msf_stream_count <= 0 {
     raise InvalidInfoValue("MSF stream count must be positive")
   }
-  let (version, cursor) = read_u32_le(data, 0, data.length())
-  let (signature, cursor) = read_u32_le(data, cursor, data.length())
-  let (age, cursor) = read_u32_le(data, cursor, data.length())
+  let (version, cursor) = read_info_u32_le(data, 0, data.length())
+  let (signature, cursor) = read_info_u32_le(data, cursor, data.length())
+  let (age, cursor) = read_info_u32_le(data, cursor, data.length())
   let (guid, cursor) = read_info_bytes(data, cursor, data.length(), 16)
-  let (string_buffer_size_raw, cursor) = read_u32_le(
+  let (string_buffer_size_raw, cursor) = read_info_u32_le(
     data,
     cursor,
     data.length(),
@@ -183,11 +184,11 @@ fn parse_named_stream_map(
   string_buffer : Bytes,
   msf_stream_count : Int32,
   limits : PdbInfoLimits,
-) -> (Array[NamedStream], Int32) raise {
-  let size_and_cursor = read_u32_le(data, start, data.length())
+) -> (Array[NamedStream], Int32) raise PdbInfoError {
+  let size_and_cursor = read_info_u32_le(data, start, data.length())
   let size_raw = size_and_cursor.0
   let mut cursor = size_and_cursor.1
-  let capacity_and_cursor = read_u32_le(data, cursor, data.length())
+  let capacity_and_cursor = read_info_u32_le(data, cursor, data.length())
   let capacity_raw = capacity_and_cursor.0
   cursor = capacity_and_cursor.1
   let size = info_uint_to_int(size_raw, "named stream count")
@@ -214,8 +215,8 @@ fn parse_named_stream_map(
   }
   let streams = []
   for _ in 0..<size {
-    let (key_offset_raw, next) = read_u32_le(data, cursor, data.length())
-    let (stream_index_raw, next) = read_u32_le(data, next, data.length())
+    let (key_offset_raw, next) = read_info_u32_le(data, cursor, data.length())
+    let (stream_index_raw, next) = read_info_u32_le(data, next, data.length())
     let key_offset = info_uint_to_int(key_offset_raw, "named stream key offset")
     let stream_index = info_uint_to_int(stream_index_raw, "named stream index")
     if key_offset < 0 || key_offset >= string_buffer.length() {
@@ -239,8 +240,8 @@ fn read_bit_vector(
   data : Bytes,
   start : Int32,
   capacity : Int32,
-) -> (Array[UInt32], Int32) raise {
-  let (word_count_raw, cursor) = read_u32_le(data, start, data.length())
+) -> (Array[UInt32], Int32) raise PdbInfoError {
+  let (word_count_raw, cursor) = read_info_u32_le(data, start, data.length())
   let word_count = info_uint_to_int(word_count_raw, "bit vector word count")
   let expected_words = be_div_ceil(capacity, 32)
   if word_count != expected_words {
@@ -249,7 +250,7 @@ fn read_bit_vector(
   let words = []
   let mut cursor = cursor
   for _ in 0..<word_count {
-    let (word, next) = read_u32_le(data, cursor, data.length())
+    let (word, next) = read_info_u32_le(data, cursor, data.length())
     words.push(word)
     cursor = next
   }
@@ -270,7 +271,7 @@ fn parse_feature_codes(
   data : Bytes,
   start : Int32,
   limits : PdbInfoLimits,
-) -> Array[UInt32] raise {
+) -> Array[UInt32] raise PdbInfoError {
   let remaining = data.length() - start
   if remaining % 4 != 0 {
     raise InvalidInfoValue("feature code bytes are not aligned to 4 bytes")
@@ -282,11 +283,23 @@ fn parse_feature_codes(
   let codes = []
   let mut cursor = start
   for _ in 0..<count {
-    let (code, next) = read_u32_le(data, cursor, data.length())
+    let (code, next) = read_info_u32_le(data, cursor, data.length())
     codes.push(code)
     cursor = next
   }
   codes
+}
+
+///|
+fn read_info_u32_le(
+  data : Bytes,
+  pos : Int32,
+  end : Int32,
+) -> (UInt32, Int32) raise PdbInfoError {
+  read_u32_le(data, pos, end) catch {
+    Truncated(_) => raise TruncatedInfo(pos)
+    _ => raise InvalidInfoValue("invalid PDB Info stream offset")
+  }
 }
 
 ///|
@@ -295,7 +308,7 @@ fn read_info_bytes(
   pos : Int32,
   end : Int32,
   length : Int32,
-) -> (Bytes, Int32) raise {
+) -> (Bytes, Int32) raise PdbInfoError {
   if length < 0 || pos < 0 || pos + length > end {
     raise TruncatedInfo(pos)
   }
@@ -303,7 +316,7 @@ fn read_info_bytes(
 }
 
 ///|
-fn info_uint_to_int(value : UInt32, field : String) -> Int32 raise {
+fn info_uint_to_int(value : UInt32, field : String) -> Int32 raise PdbInfoError {
   let wide = value.to_int64()
   if wide > 0x7FFFFFFFL {
     raise InvalidInfoValue("\{field} exceeds Int range")
@@ -312,7 +325,7 @@ fn info_uint_to_int(value : UInt32, field : String) -> Int32 raise {
 }
 
 ///|
-fn find_nul(data : Bytes, start : Int32) -> Int32 raise {
+fn find_nul(data : Bytes, start : Int32) -> Int32 raise PdbInfoError {
   let mut index = start
   while index < data.length() {
     if data.at(index) == 0 {
@@ -324,7 +337,7 @@ fn find_nul(data : Bytes, start : Int32) -> Int32 raise {
 }
 
 ///|
-fn decode_named_stream(data : BytesView) -> String raise {
+fn decode_named_stream(data : BytesView) -> String raise PdbInfoError {
   @utf8.decode(data) catch {
     _ => raise InvalidNamedStream("named stream is not valid UTF-8")
   }

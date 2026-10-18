@@ -6,6 +6,8 @@ pub fn parse_msf(Bytes, MsfLimits) -> MsfFile raise MsfError
 
 pub fn parse_msf_header(Bytes, MsfLimits) -> MsfHeader raise MsfError
 
+pub fn parse_pdb_info(Bytes, Int, PdbInfoLimits) -> PdbInfo raise PdbInfoError
+
 // Errors
 pub suberror MsfError {
   TooSmall(Int)
@@ -21,6 +23,14 @@ pub suberror MsfError {
   InvalidValue(String)
 }
 
+pub suberror PdbInfoError {
+  TruncatedInfo(Int)
+  InvalidInfoValue(String)
+  InvalidNamedStream(String)
+  InfoStreamUnavailable
+  LimitExceededInfo(String)
+}
+
 // Types and methods
 pub struct MsfFile {
   data : Bytes
@@ -28,6 +38,7 @@ pub struct MsfFile {
   streams : Array[MsfStream]
 }
 pub fn MsfFile::header(Self) -> MsfHeader
+pub fn MsfFile::pdb_info(Self, PdbInfoLimits) -> PdbInfo raise PdbInfoError
 pub fn MsfFile::stream(Self, Int) -> Bytes raise MsfError
 pub fn MsfFile::stream_count(Self) -> Int
 pub fn MsfFile::stream_info(Self, Int) -> MsfStream raise MsfError
@@ -61,6 +72,40 @@ pub struct MsfStream {
 pub fn MsfStream::block_count(Self) -> Int
 pub fn MsfStream::index(Self) -> Int
 pub fn MsfStream::size(Self) -> Int
+
+pub struct NamedStream {
+  name : String
+  stream_index : Int
+}
+pub fn NamedStream::name(Self) -> String
+pub fn NamedStream::stream_index(Self) -> Int
+
+pub struct PdbInfo {
+  version : UInt
+  signature : UInt
+  age : UInt
+  guid : Bytes
+  named_streams : Array[NamedStream]
+  feature_codes : Array[UInt]
+}
+pub fn PdbInfo::age(Self) -> UInt
+pub fn PdbInfo::feature_codes(Self) -> Array[UInt]
+pub fn PdbInfo::guid(Self) -> Bytes
+pub fn PdbInfo::guid_string(Self) -> String
+pub fn PdbInfo::has_feature(Self, UInt) -> Bool
+pub fn PdbInfo::named_stream_count(Self) -> Int
+pub fn PdbInfo::named_stream_index(Self, String) -> Int?
+pub fn PdbInfo::named_streams(Self) -> Array[NamedStream]
+pub fn PdbInfo::signature(Self) -> UInt
+pub fn PdbInfo::version(Self) -> UInt
+
+pub struct PdbInfoLimits {
+  max_string_bytes : Int
+  max_named_streams : Int
+  max_hash_capacity : Int
+  max_features : Int
+}
+pub fn PdbInfoLimits::default() -> Self
 
 // Type aliases
 

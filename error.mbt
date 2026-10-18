@@ -20,5 +20,6 @@ pub suberror PdbInfoError {
   TruncatedInfo(Int32)
   InvalidInfoValue(String)
   InvalidNamedStream(String)
+  InfoStreamUnavailable
   LimitExceededInfo(String)
 }
