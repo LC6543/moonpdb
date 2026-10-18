@@ -93,6 +93,201 @@ pub fn parse_msf_header(
 }
 
 ///|
+/// One stream and the physical file blocks that contain it.
+pub struct MsfStream {
+  index : Int
+  size : Int
+  blocks : Array[Int]
+}
+
+///|
+pub fn MsfStream::index(self : MsfStream) -> Int {
+  self.index
+}
+
+///|
+pub fn MsfStream::size(self : MsfStream) -> Int {
+  self.size
+}
+
+///|
+pub fn MsfStream::block_count(self : MsfStream) -> Int {
+  self.blocks.length()
+}
+
+///|
+/// A parsed MSF container with bounded stream access.
+pub struct MsfFile {
+  data : Bytes
+  header : MsfHeader
+  streams : Array[MsfStream]
+}
+
+///|
+pub fn MsfFile::header(self : MsfFile) -> MsfHeader {
+  self.header
+}
+
+///|
+pub fn MsfFile::stream_count(self : MsfFile) -> Int {
+  self.streams.length()
+}
+
+///|
+pub fn MsfFile::stream_info(self : MsfFile, index : Int) -> MsfStream raise MsfError {
+  if index < 0 || index >= self.streams.length() {
+    raise InvalidStream(index)
+  }
+  self.streams[index]
+}
+
+///|
+/// Return the logical bytes of one stream.
+pub fn MsfFile::stream(self : MsfFile, index : Int) -> Bytes raise MsfError {
+  let stream = self.stream_info(index)
+  if stream.size == 0 {
+    return b""
+  }
+  let buffer = Buffer::Buffer(size_hint=stream.size)
+  let mut remaining = stream.size
+  let block_size = self.header.block_size
+  for block in stream.blocks {
+    let available = block_size
+    let take = if remaining < available { remaining } else { available }
+    let start = checked_mul(block, block_size, "stream block offset")
+    let end = checked_add(start, take, "stream block end")
+    if end > self.data.length() {
+      raise Truncated(end)
+    }
+    buffer.write_bytes(self.data.exact_view(start=start, end=end))
+    remaining = remaining - take
+  }
+  if remaining != 0 {
+    raise InvalidStream(index)
+  }
+  buffer.to_bytes()
+}
+
+///|
+/// Parse the MSF container and its stream directory.
+pub fn parse_msf(
+  data : Bytes,
+  limits : MsfLimits,
+) -> MsfFile raise MsfError {
+  let header = parse_msf_header(data, limits)
+  let directory = read_stream_directory(data, header)
+  let (streams, next) = parse_stream_directory(directory, header, limits)
+  if next != directory.length() {
+    raise InvalidDirectory("unexpected trailing directory bytes")
+  }
+  MsfFile::{ data, header, streams }
+}
+
+///|
+fn read_stream_directory(
+  data : Bytes,
+  header : MsfHeader,
+) -> Bytes raise MsfError {
+  let directory_blocks = be_div_ceil(
+    header.num_directory_bytes,
+    header.block_size,
+  )
+  let block_map_size = checked_mul(
+    directory_blocks,
+    4,
+    "directory block map size",
+  )
+  if block_map_size > header.block_size {
+    raise LimitExceeded("directory block map exceeds one block")
+  }
+  let block_map_offset = checked_mul(
+    header.block_map_addr,
+    header.block_size,
+    "directory block map offset",
+  )
+  let block_map_end = checked_add(
+    block_map_offset,
+    block_map_size,
+    "directory block map end",
+  )
+  if block_map_end > data.length() {
+    raise Truncated(block_map_end)
+  }
+  let directory = Buffer::Buffer(size_hint=header.num_directory_bytes)
+  let mut cursor = block_map_offset
+  for _ in 0..<directory_blocks {
+    let (block_index, next) = read_u32_le(data, cursor, block_map_end)
+    cursor = next
+    let block = uint_to_int(block_index, "directory block index")
+    if block < 0 || block >= header.num_blocks {
+      raise InvalidBlockIndex(block)
+    }
+    let start = checked_mul(block, header.block_size, "directory block offset")
+    let end = checked_add(start, header.block_size, "directory block end")
+    if end > data.length() {
+      raise Truncated(end)
+    }
+    directory.write_bytes(data.exact_view(start=start, end=end))
+  }
+  let bytes = directory.to_bytes()
+  bytes.exact_view(end=header.num_directory_bytes).to_owned()
+}
+
+///|
+fn parse_stream_directory(
+  directory : Bytes,
+  header : MsfHeader,
+  limits : MsfLimits,
+) -> (Array[MsfStream], Int) raise MsfError {
+  let count_and_cursor = read_u32_le(
+    directory,
+    0,
+    directory.length(),
+  )
+  let stream_count_raw = count_and_cursor.0
+  let mut cursor = count_and_cursor.1
+  let stream_count = uint_to_int(stream_count_raw, "stream count")
+  if stream_count > limits.max_streams {
+    raise LimitExceeded("stream count limit exceeded")
+  }
+  let sizes = []
+  for _ in 0..<stream_count {
+    let (size_raw, next) = read_u32_le(
+      directory,
+      cursor,
+      directory.length(),
+    )
+    let size = uint_to_int(size_raw, "stream size")
+    if size > limits.max_stream_bytes {
+      raise LimitExceeded("stream byte limit exceeded")
+    }
+    sizes.push(size)
+    cursor = next
+  }
+  let streams = []
+  for index in 0..<stream_count {
+    let size = sizes[index]
+    let block_count = be_div_ceil(size, header.block_size)
+    let blocks = []
+    for _ in 0..<block_count {
+      let (block_raw, next) = read_u32_le(
+        directory,
+        cursor,
+        directory.length(),
+      )
+      let block = uint_to_int(block_raw, "stream block index")
+      if block < 0 || block >= header.num_blocks {
+        raise InvalidBlockIndex(block)
+      }
+      blocks.push(block)
+      cursor = next
+    }
+    streams.push(MsfStream::{ index, size, blocks })
+  }
+  (streams, cursor)
+}
+
+///|
 fn bytes_equal(
   left : Bytes,
   left_offset : Int,
