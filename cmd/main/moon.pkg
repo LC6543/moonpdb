@@ -1,0 +1,5 @@
+// import {
+//   "LC6543/moonpdb" @lib,
+// }
+
+pkgtype(kind: "executable")
