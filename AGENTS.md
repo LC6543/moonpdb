@@ -2,8 +2,8 @@
 
 This is a [MoonBit](https://docs.moonbitlang.com) project.
 
-You can browse and install extra skills here:
-<https://github.com/moonbitlang/skills>
+You can browse and install extra skills from the official MoonBit skills
+repository.
 
 ## Project Structure
 
