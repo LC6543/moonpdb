@@ -4,6 +4,7 @@
 
 - 项目名称：MoonPDB
 - 参赛者：LC6543
+- 邮箱：2735527267@qq.com
 - GitHub：https://github.com/LC6543
 - 仓库：https://github.com/LC6543/moonpdb
 - 项目方向：语言和开发工具 / 调试信息与二进制基础设施
