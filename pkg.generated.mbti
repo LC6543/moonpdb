@@ -2,110 +2,1252 @@
 package "LC6543/moonpdb"
 
 // Values
+pub fn hash_string_v1(String) -> UInt32
+
+pub fn parse_c13_debug_info(Bytes, C13Limits) -> C13DebugInfo raise SymbolError
+
+pub fn parse_dbi(Bytes, DbiLimits) -> DbiFile raise DbiError
+
+pub fn parse_globals_stream(Bytes, SymbolTable, SymbolLimits) -> GlobalsStream raise SymbolError
+
+pub fn parse_module_debug_stream(Bytes, UInt32, UInt32, UInt32, SymbolLimits) -> ModuleDebugStream raise SymbolError
+
 pub fn parse_msf(Bytes, MsfLimits) -> MsfFile raise MsfError
 
 pub fn parse_msf_header(Bytes, MsfLimits) -> MsfHeader raise MsfError
 
-pub fn parse_pdb_info(Bytes, Int, PdbInfoLimits) -> PdbInfo raise PdbInfoError
+pub fn parse_pdb_info(Bytes, Int32, PdbInfoLimits) -> PdbInfo raise PdbInfoError
+
+pub fn parse_pe_image(Bytes, PeLimits) -> PeImage raise PeError
+
+pub fn parse_publics_stream(Bytes, SymbolTable, SymbolLimits) -> PublicsStream raise SymbolError
+
+pub fn parse_symbols(Bytes, SymbolLimits) -> SymbolTable raise SymbolError
+
+pub fn parse_tpi(Bytes, TpiLimits) -> TypeTable raise TpiError
+
+pub fn simple_type(UInt32) -> SimpleType?
+
+pub fn symbolicate_address(PeImage, PublicsStream, Array[C13DebugInfo], UInt16, UInt32) -> SymbolizedAddress?
+
+pub fn symbolicate_addresses(PeImage, PublicsStream, Array[C13DebugInfo], Array[(UInt16, UInt32)]) -> Array[SymbolizedAddress]
 
 // Errors
+pub suberror DbiError {
+  TruncatedDbi(Int32)
+  InvalidDbiHeader(String)
+  UnsupportedDbiVersion(UInt32)
+  UnsupportedSectionContributionVersion(UInt32)
+  InvalidDbiModule(String)
+  InvalidSectionContribution(String)
+  InvalidSectionMap(String)
+  InvalidFileInfo(String)
+  DbiStreamUnavailable
+  DbiLimitExceeded(String)
+}
+
 pub suberror MsfError {
-  TooSmall(Int)
+  TooSmall(Int32)
   BadMagic
-  UnsupportedBlockSize(Int)
-  InvalidBlockCount(Int)
-  InvalidFreeBlockMap(Int)
-  InvalidBlockIndex(Int)
-  Truncated(Int)
+  UnsupportedBlockSize(Int32)
+  InvalidBlockCount(Int32)
+  InvalidFreeBlockMap(Int32)
+  InvalidBlockIndex(Int32)
+  Truncated(Int32)
   InvalidDirectory(String)
-  InvalidStream(Int)
+  InvalidStream(Int32)
   LimitExceeded(String)
   InvalidValue(String)
 }
 
 pub suberror PdbInfoError {
-  TruncatedInfo(Int)
+  TruncatedInfo(Int32)
   InvalidInfoValue(String)
   InvalidNamedStream(String)
   InfoStreamUnavailable
   LimitExceededInfo(String)
 }
 
+pub suberror PeError {
+  TooSmallPe(Int32)
+  BadDosMagic
+  BadPeSignature
+  TruncatedPe(Int32)
+  UnsupportedPeOptionalHeader(UInt16)
+  InvalidPeSection(String)
+  PeLimitExceeded(String)
+}
+
+pub suberror SymbolError {
+  TruncatedSymbol(Int32)
+  InvalidSymbolRecord(String)
+  InvalidModuleStream(String)
+  UnsupportedModuleSignature(UInt32)
+  SymbolStreamUnavailable(UInt16)
+  ModuleStreamUnavailable(UInt16)
+  SymbolLimitExceeded(String)
+  TruncatedPublics(Int32)
+  InvalidPublicsHeader(String)
+  UnsupportedGsiVersion(UInt32)
+  InvalidGsi(String)
+  PublicsStreamUnavailable(UInt16)
+  InvalidPublicSymbol(String)
+  PublicsLimitExceeded(String)
+  GlobalsStreamUnavailable(UInt16)
+  InvalidGlobalIndex(String)
+  TruncatedC13(Int32)
+  InvalidC13Subsection(String)
+  InvalidFileChecksum(String)
+  InvalidLineInfo(String)
+  MissingC13StringTable
+  C13LimitExceeded(String)
+}
+
+pub suberror TpiError {
+  TruncatedTpi(Int32)
+  InvalidTpiHeader(String)
+  InvalidTypeRecord(String)
+  TypeStreamUnavailable(Int32)
+  TpiLimitExceeded(String)
+}
+
 // Types and methods
+pub struct AggregateType {
+  leaf_kind : UInt16
+  member_count : UInt16
+  properties : UInt16
+  field_list : UInt32
+  derived_from : UInt32
+  vtable_shape : UInt32
+  size : NumericValue
+  name : String
+  unique_name : String?
+}
+pub fn AggregateType::derived_from(Self) -> UInt32
+pub fn AggregateType::field_list(Self) -> UInt32
+pub fn AggregateType::has_unique_name(Self) -> Bool
+pub fn AggregateType::is_forward_reference(Self) -> Bool
+pub fn AggregateType::leaf_kind(Self) -> UInt16
+pub fn AggregateType::member_count(Self) -> UInt16
+pub fn AggregateType::name(Self) -> String
+pub fn AggregateType::properties(Self) -> UInt16
+pub fn AggregateType::size(Self) -> NumericValue
+pub fn AggregateType::unique_name(Self) -> String?
+pub fn AggregateType::vtable_shape(Self) -> UInt32
+
+pub struct AliasType {
+  underlying_type : UInt32
+  name : String
+}
+pub fn AliasType::name(Self) -> String
+pub fn AliasType::underlying_type(Self) -> UInt32
+
+pub struct ArgListType {
+  type_indices : Array[UInt32]
+}
+pub fn ArgListType::count(Self) -> Int32
+pub fn ArgListType::type_index(Self, Int32) -> UInt32?
+pub fn ArgListType::type_indices(Self) -> Array[UInt32]
+
+pub struct ArrayType {
+  element_type : UInt32
+  index_type : UInt32
+  size : NumericValue
+  name : String
+}
+pub fn ArrayType::element_type(Self) -> UInt32
+pub fn ArrayType::index_type(Self) -> UInt32
+pub fn ArrayType::name(Self) -> String
+pub fn ArrayType::size(Self) -> NumericValue
+
+pub struct BPRelativeSymbol {
+  offset : Int32
+  type_index : UInt32
+  name : String
+}
+pub fn BPRelativeSymbol::name(Self) -> String
+pub fn BPRelativeSymbol::offset(Self) -> Int32
+pub fn BPRelativeSymbol::type_index(Self) -> UInt32
+
+pub struct BitFieldType {
+  underlying_type : UInt32
+  bit_size : Int32
+  bit_offset : Int32
+}
+pub fn BitFieldType::bit_offset(Self) -> Int32
+pub fn BitFieldType::bit_size(Self) -> Int32
+pub fn BitFieldType::underlying_type(Self) -> UInt32
+
+pub struct BlockSymbol {
+  parent : UInt32
+  end : UInt32
+  code_size : UInt32
+  code_offset : UInt32
+  segment : UInt16
+  name : String
+}
+pub fn BlockSymbol::code_offset(Self) -> UInt32
+pub fn BlockSymbol::code_size(Self) -> UInt32
+pub fn BlockSymbol::end(Self) -> UInt32
+pub fn BlockSymbol::name(Self) -> String
+pub fn BlockSymbol::parent(Self) -> UInt32
+pub fn BlockSymbol::segment(Self) -> UInt16
+
+pub struct BuildInfoType {
+  argument_indices : Array[UInt32]
+}
+pub fn BuildInfoType::argument_indices(Self) -> Array[UInt32]
+
+pub struct C13DebugInfo {
+  subsections : Array[C13Subsection]
+  string_table : DebugStringTable?
+  checksums : Array[FileChecksum]
+  line_fragments : Array[LineFragment]
+}
+pub fn C13DebugInfo::file_checksum_at(Self, Int32) -> FileChecksum?
+pub fn C13DebugInfo::file_checksum_count(Self) -> Int32
+pub fn C13DebugInfo::find_line(Self, UInt16, UInt32) -> SourceLocation?
+pub fn C13DebugInfo::line_fragment_at(Self, Int32) -> LineFragment?
+pub fn C13DebugInfo::line_fragment_count(Self) -> Int32
+pub fn C13DebugInfo::string_table(Self) -> DebugStringTable?
+pub fn C13DebugInfo::subsection_at(Self, Int32) -> C13Subsection?
+pub fn C13DebugInfo::subsection_count(Self) -> Int32
+
+pub struct C13Limits {
+  max_bytes : Int32
+  max_subsections : Int32
+  max_file_checksums : Int32
+  max_line_fragments : Int32
+  max_line_entries : Int32
+}
+pub fn C13Limits::default() -> Self
+
+pub struct C13Subsection {
+  kind : UInt32
+  payload : Bytes
+}
+pub fn C13Subsection::kind(Self) -> UInt32
+pub fn C13Subsection::payload(Self) -> Bytes
+
+pub struct ConstantSymbol {
+  type_index : UInt32
+  value : NumericValue
+  name : String
+}
+pub fn ConstantSymbol::name(Self) -> String
+pub fn ConstantSymbol::type_index(Self) -> UInt32
+pub fn ConstantSymbol::value(Self) -> NumericValue
+
+pub struct DataSymbol {
+  type_index : UInt32
+  offset : UInt32
+  segment : UInt16
+  name : String
+}
+pub fn DataSymbol::name(Self) -> String
+pub fn DataSymbol::offset(Self) -> UInt32
+pub fn DataSymbol::segment(Self) -> UInt16
+pub fn DataSymbol::type_index(Self) -> UInt32
+
+pub struct DbiFile {
+  data : Bytes
+  header : DbiHeader
+  modules : Array[DbiModule]
+  section_contributions : Array[SectionContribution]
+  section_contribution_version : SectionContributionVersion
+  section_map : SectionMap
+  reported_source_file_count : UInt16
+  type_server_map : Bytes
+  ec_substream : Bytes
+  optional_debug_streams : Array[UInt16]
+}
+pub fn DbiFile::data(Self) -> Bytes
+pub fn DbiFile::debug_stream_index(Self, DebugStreamKind) -> UInt16?
+pub fn DbiFile::ec_substream(Self) -> Bytes
+pub fn DbiFile::header(Self) -> DbiHeader
+pub fn DbiFile::module_at(Self, Int32) -> DbiModule?
+pub fn DbiFile::module_count(Self) -> Int32
+pub fn DbiFile::modules(Self) -> Array[DbiModule]
+pub fn DbiFile::optional_debug_streams(Self) -> Array[UInt16]
+pub fn DbiFile::reported_source_file_count(Self) -> UInt16
+pub fn DbiFile::section_contribution(Self, Int32) -> SectionContribution?
+pub fn DbiFile::section_contribution_count(Self) -> Int32
+pub fn DbiFile::section_contribution_version(Self) -> SectionContributionVersion
+pub fn DbiFile::section_map(Self) -> SectionMap
+pub fn DbiFile::source_file_count(Self) -> Int32
+pub fn DbiFile::type_server_map(Self) -> Bytes
+
+pub struct DbiHeader {
+  version_signature : UInt32
+  version : UInt32
+  age : UInt32
+  global_symbol_stream_index : UInt16
+  build_number : UInt16
+  public_symbol_stream_index : UInt16
+  pdb_dll_version : UInt16
+  symbol_record_stream_index : UInt16
+  pdb_dll_rebuild : UInt16
+  modi_substream_bytes : Int32
+  section_contributions_bytes : Int32
+  section_map_bytes : Int32
+  file_info_bytes : Int32
+  type_server_map_bytes : Int32
+  mfc_type_server_index : UInt32
+  optional_debug_header_bytes : Int32
+  ec_substream_bytes : Int32
+  flags : UInt16
+  machine_type : UInt16
+  reserved : UInt32
+}
+pub fn DbiHeader::age(Self) -> UInt32
+pub fn DbiHeader::build_major_version(Self) -> UInt16
+pub fn DbiHeader::build_minor_version(Self) -> UInt16
+pub fn DbiHeader::build_number(Self) -> UInt16
+pub fn DbiHeader::ec_substream_bytes(Self) -> Int32
+pub fn DbiHeader::file_info_bytes(Self) -> Int32
+pub fn DbiHeader::flags(Self) -> UInt16
+pub fn DbiHeader::global_symbol_stream_index(Self) -> UInt16
+pub fn DbiHeader::has_c_types(Self) -> Bool
+pub fn DbiHeader::is_incrementally_linked(Self) -> Bool
+pub fn DbiHeader::is_stripped(Self) -> Bool
+pub fn DbiHeader::machine_type(Self) -> UInt16
+pub fn DbiHeader::mfc_type_server_index(Self) -> UInt32
+pub fn DbiHeader::modi_substream_bytes(Self) -> Int32
+pub fn DbiHeader::optional_debug_header_bytes(Self) -> Int32
+pub fn DbiHeader::pdb_dll_rebuild(Self) -> UInt16
+pub fn DbiHeader::pdb_dll_version(Self) -> UInt16
+pub fn DbiHeader::public_symbol_stream_index(Self) -> UInt16
+pub fn DbiHeader::reserved(Self) -> UInt32
+pub fn DbiHeader::section_contributions_bytes(Self) -> Int32
+pub fn DbiHeader::section_map_bytes(Self) -> Int32
+pub fn DbiHeader::symbol_record_stream_index(Self) -> UInt16
+pub fn DbiHeader::type_server_map_bytes(Self) -> Int32
+pub fn DbiHeader::uses_new_version_format(Self) -> Bool
+pub fn DbiHeader::version(Self) -> UInt32
+pub fn DbiHeader::version_signature(Self) -> UInt32
+
+pub struct DbiLimits {
+  max_stream_bytes : Int32
+  max_modules : Int32
+  max_section_contributions : Int32
+  max_section_map_entries : Int32
+  max_source_files : Int32
+  max_string_bytes : Int32
+  max_debug_streams : Int32
+}
+pub fn DbiLimits::default() -> Self
+
+pub struct DbiModule {
+  record_index : Int32
+  module_name : String
+  object_name : String
+  section_contribution : SectionContribution
+  flags : UInt16
+  module_stream_index : UInt16
+  symbol_debug_bytes : UInt32
+  c11_line_bytes : UInt32
+  c13_line_bytes : UInt32
+  declared_source_file_count : UInt16
+  source_file_name_index : UInt32
+  pdb_file_path_index : UInt32
+  source_files : Array[String]
+}
+pub fn DbiModule::c11_line_bytes(Self) -> UInt32
+pub fn DbiModule::c13_line_bytes(Self) -> UInt32
+pub fn DbiModule::declared_source_file_count(Self) -> UInt16
+pub fn DbiModule::flags(Self) -> UInt16
+pub fn DbiModule::has_ec_info(Self) -> Bool
+pub fn DbiModule::module_name(Self) -> String
+pub fn DbiModule::module_stream_index(Self) -> UInt16
+pub fn DbiModule::object_name(Self) -> String
+pub fn DbiModule::pdb_file_path_index(Self) -> UInt32
+pub fn DbiModule::record_index(Self) -> Int32
+pub fn DbiModule::section_contribution(Self) -> SectionContribution
+pub fn DbiModule::source_file_name_index(Self) -> UInt32
+pub fn DbiModule::source_files(Self) -> Array[String]
+pub fn DbiModule::symbol_debug_bytes(Self) -> UInt32
+pub fn DbiModule::type_server_index(Self) -> UInt16
+
+pub enum DebugStreamKind {
+  Fpo
+  Exception
+  Fixup
+  OmapToSrc
+  OmapFromSrc
+  SectionHdr
+  TokenRidMap
+  Xdata
+  Pdata
+  NewFpo
+  SectionHdrOrig
+}
+pub fn DebugStreamKind::all() -> Array[Self]
+
+pub struct DebugStringTable {
+  bytes : Bytes
+}
+pub fn DebugStringTable::bytes(Self) -> Bytes
+pub fn DebugStringTable::string_at(Self, UInt32) -> String?
+
+pub struct EnumType {
+  member_count : UInt16
+  properties : UInt16
+  underlying_type : UInt32
+  field_list : UInt32
+  name : String
+  unique_name : String?
+}
+pub fn EnumType::field_list(Self) -> UInt32
+pub fn EnumType::member_count(Self) -> UInt16
+pub fn EnumType::name(Self) -> String
+pub fn EnumType::properties(Self) -> UInt16
+pub fn EnumType::underlying_type(Self) -> UInt32
+pub fn EnumType::unique_name(Self) -> String?
+
+pub struct FieldListType {
+  bytes : Bytes
+}
+pub fn FieldListType::bytes(Self) -> Bytes
+
+pub struct FileChecksum {
+  subsection_offset : UInt32
+  file_name_offset : UInt32
+  kind : Int32
+  checksum : Bytes
+  file_path : String
+}
+pub fn FileChecksum::checksum(Self) -> Bytes
+pub fn FileChecksum::file_name_offset(Self) -> UInt32
+pub fn FileChecksum::file_path(Self) -> String
+pub fn FileChecksum::kind(Self) -> Int32
+pub fn FileChecksum::subsection_offset(Self) -> UInt32
+
+pub struct FrameProcedureSymbol {
+  total_frame_bytes : UInt32
+  padding_frame_bytes : UInt32
+  offset_to_padding : UInt32
+  callee_saved_bytes : UInt32
+  exception_handler_offset : UInt32
+  exception_handler_section : UInt16
+  flags : UInt32
+}
+pub fn FrameProcedureSymbol::callee_saved_bytes(Self) -> UInt32
+pub fn FrameProcedureSymbol::exception_handler_offset(Self) -> UInt32
+pub fn FrameProcedureSymbol::exception_handler_section(Self) -> UInt16
+pub fn FrameProcedureSymbol::flags(Self) -> UInt32
+pub fn FrameProcedureSymbol::offset_to_padding(Self) -> UInt32
+pub fn FrameProcedureSymbol::padding_frame_bytes(Self) -> UInt32
+pub fn FrameProcedureSymbol::total_frame_bytes(Self) -> UInt32
+
+pub struct FunctionIdType {
+  parent_scope : UInt32
+  function_type : UInt32
+  name : String
+}
+pub fn FunctionIdType::function_type(Self) -> UInt32
+pub fn FunctionIdType::name(Self) -> String
+pub fn FunctionIdType::parent_scope(Self) -> UInt32
+
+pub struct GlobalsStream {
+  gsi : GsiTable
+  symbols : SymbolTable
+  max_results : Int32
+}
+pub fn GlobalsStream::find_records_by_name(Self, String) -> Array[SymbolRecord] raise SymbolError
+pub fn GlobalsStream::gsi(Self) -> GsiTable
+pub fn GlobalsStream::symbols(Self) -> SymbolTable
+
+pub struct GsiHashHeader {
+  signature : UInt32
+  version : UInt32
+  hash_record_bytes : UInt32
+  declared_bucket_count : UInt32
+}
+pub fn GsiHashHeader::declared_bucket_count(Self) -> UInt32
+pub fn GsiHashHeader::hash_record_bytes(Self) -> UInt32
+pub fn GsiHashHeader::signature(Self) -> UInt32
+pub fn GsiHashHeader::version(Self) -> UInt32
+
+pub struct GsiHashRecord {
+  raw_offset : UInt32
+  reference_count : UInt32
+}
+pub fn GsiHashRecord::raw_offset(Self) -> UInt32
+pub fn GsiHashRecord::reference_count(Self) -> UInt32
+pub fn GsiHashRecord::symbol_offset(Self) -> UInt32?
+
+pub struct GsiTable {
+  header : GsiHashHeader
+  hash_records : Array[GsiHashRecord]
+  bitmap : Array[UInt32]
+  buckets : Array[UInt32]
+  bucket_map : Array[Int32]
+}
+pub fn GsiTable::bitmap(Self) -> Array[UInt32]
+pub fn GsiTable::bucket_count(Self) -> Int32
+pub fn GsiTable::bucket_map_index(Self, Int32) -> Int32?
+pub fn GsiTable::buckets(Self) -> Array[UInt32]
+pub fn GsiTable::hash_record_at(Self, Int32) -> GsiHashRecord?
+pub fn GsiTable::hash_record_count(Self) -> Int32
+pub fn GsiTable::hash_records(Self) -> Array[GsiHashRecord]
+pub fn GsiTable::header(Self) -> GsiHashHeader
+
+pub struct LabelSymbol {
+  code_offset : UInt32
+  segment : UInt16
+  flags : Int32
+  name : String
+}
+pub fn LabelSymbol::code_offset(Self) -> UInt32
+pub fn LabelSymbol::flags(Self) -> Int32
+pub fn LabelSymbol::name(Self) -> String
+pub fn LabelSymbol::segment(Self) -> UInt16
+
+pub struct LabelType {
+  mode : UInt16
+}
+pub fn LabelType::mode(Self) -> UInt16
+
+pub struct LineBlock {
+  file_checksum_offset : UInt32
+  file_path : String
+  record_size : UInt32
+  lines : Array[LineNumber]
+}
+pub fn LineBlock::file_checksum_offset(Self) -> UInt32
+pub fn LineBlock::file_path(Self) -> String
+pub fn LineBlock::line_at(Self, Int32) -> LineNumber?
+pub fn LineBlock::line_count(Self) -> Int32
+pub fn LineBlock::record_size(Self) -> UInt32
+
+pub struct LineColumnRange {
+  start : UInt16
+  end : UInt16
+}
+pub fn LineColumnRange::end(Self) -> UInt16
+pub fn LineColumnRange::start(Self) -> UInt16
+
+pub struct LineFragment {
+  relocation_offset : UInt32
+  relocation_segment : UInt16
+  flags : UInt16
+  code_size : UInt32
+  blocks : Array[LineBlock]
+}
+pub fn LineFragment::block_at(Self, Int32) -> LineBlock?
+pub fn LineFragment::block_count(Self) -> Int32
+pub fn LineFragment::code_size(Self) -> UInt32
+pub fn LineFragment::flags(Self) -> UInt16
+pub fn LineFragment::has_columns(Self) -> Bool
+pub fn LineFragment::relocation_offset(Self) -> UInt32
+pub fn LineFragment::relocation_segment(Self) -> UInt16
+
+pub struct LineNumber {
+  offset : UInt32
+  line_start : UInt32
+  line_end : UInt32
+  is_statement : Bool
+  columns : LineColumnRange?
+}
+pub fn LineNumber::columns(Self) -> LineColumnRange?
+pub fn LineNumber::is_statement(Self) -> Bool
+pub fn LineNumber::line_end(Self) -> UInt32
+pub fn LineNumber::line_start(Self) -> UInt32
+pub fn LineNumber::offset(Self) -> UInt32
+
+pub struct MemberFunctionIdType {
+  class_type : UInt32
+  function_type : UInt32
+  name : String
+}
+pub fn MemberFunctionIdType::class_type(Self) -> UInt32
+pub fn MemberFunctionIdType::function_type(Self) -> UInt32
+pub fn MemberFunctionIdType::name(Self) -> String
+
+pub struct MemberFunctionType {
+  return_type : UInt32
+  class_type : UInt32
+  this_type : UInt32
+  calling_convention : Int32
+  function_options : Int32
+  parameter_count : UInt16
+  argument_list : UInt32
+  this_adjustment : Int32
+}
+pub fn MemberFunctionType::argument_list(Self) -> UInt32
+pub fn MemberFunctionType::calling_convention(Self) -> Int32
+pub fn MemberFunctionType::class_type(Self) -> UInt32
+pub fn MemberFunctionType::function_options(Self) -> Int32
+pub fn MemberFunctionType::parameter_count(Self) -> UInt16
+pub fn MemberFunctionType::return_type(Self) -> UInt32
+pub fn MemberFunctionType::this_adjustment(Self) -> Int32
+pub fn MemberFunctionType::this_type(Self) -> UInt32
+
+pub struct ModifierType {
+  modified_type : UInt32
+  modifiers : UInt16
+}
+pub fn ModifierType::is_const(Self) -> Bool
+pub fn ModifierType::is_unaligned(Self) -> Bool
+pub fn ModifierType::is_volatile(Self) -> Bool
+pub fn ModifierType::modified_type(Self) -> UInt32
+pub fn ModifierType::modifiers(Self) -> UInt16
+
+pub struct ModuleDebugStream {
+  signature : UInt32
+  symbols : SymbolTable
+  c11_lines : Bytes
+  c13_lines : Bytes
+  global_refs : Array[UInt32]
+}
+pub fn ModuleDebugStream::c11_lines(Self) -> Bytes
+pub fn ModuleDebugStream::c13_info(Self, C13Limits) -> C13DebugInfo raise SymbolError
+pub fn ModuleDebugStream::c13_lines(Self) -> Bytes
+pub fn ModuleDebugStream::global_refs(Self) -> Array[UInt32]
+pub fn ModuleDebugStream::signature(Self) -> UInt32
+pub fn ModuleDebugStream::symbols(Self) -> SymbolTable
+
 pub struct MsfFile {
   data : Bytes
   header : MsfHeader
   streams : Array[MsfStream]
 }
+pub fn MsfFile::dbi(Self, DbiLimits) -> DbiFile raise DbiError
+pub fn MsfFile::globals_stream(Self, DbiFile, SymbolLimits) -> GlobalsStream raise SymbolError
 pub fn MsfFile::header(Self) -> MsfHeader
+pub fn MsfFile::ipi(Self, TpiLimits) -> TypeTable raise TpiError
+pub fn MsfFile::module_c13_info(Self, DbiFile, Int32, SymbolLimits, C13Limits) -> C13DebugInfo raise SymbolError
+pub fn MsfFile::module_debug_stream(Self, DbiFile, Int32, SymbolLimits) -> ModuleDebugStream raise SymbolError
 pub fn MsfFile::pdb_info(Self, PdbInfoLimits) -> PdbInfo raise PdbInfoError
-pub fn MsfFile::stream(Self, Int) -> Bytes raise MsfError
-pub fn MsfFile::stream_count(Self) -> Int
-pub fn MsfFile::stream_info(Self, Int) -> MsfStream raise MsfError
+pub fn MsfFile::publics_stream(Self, DbiFile, SymbolLimits) -> PublicsStream raise SymbolError
+pub fn MsfFile::stream(Self, Int32) -> Bytes raise MsfError
+pub fn MsfFile::stream_count(Self) -> Int32
+pub fn MsfFile::stream_info(Self, Int32) -> MsfStream raise MsfError
+pub fn MsfFile::symbol_record_stream(Self, DbiFile, SymbolLimits) -> SymbolTable raise SymbolError
+pub fn MsfFile::tpi(Self, TpiLimits) -> TypeTable raise TpiError
 
 pub struct MsfHeader {
-  block_size : Int
-  free_block_map_block : Int
-  num_blocks : Int
-  num_directory_bytes : Int
-  block_map_addr : Int
+  block_size : Int32
+  free_block_map_block : Int32
+  num_blocks : Int32
+  num_directory_bytes : Int32
+  block_map_addr : Int32
 }
-pub fn MsfHeader::block_map_addr(Self) -> Int
-pub fn MsfHeader::block_size(Self) -> Int
-pub fn MsfHeader::free_block_map_block(Self) -> Int
-pub fn MsfHeader::num_blocks(Self) -> Int
-pub fn MsfHeader::num_directory_bytes(Self) -> Int
+pub fn MsfHeader::block_map_addr(Self) -> Int32
+pub fn MsfHeader::block_size(Self) -> Int32
+pub fn MsfHeader::free_block_map_block(Self) -> Int32
+pub fn MsfHeader::num_blocks(Self) -> Int32
+pub fn MsfHeader::num_directory_bytes(Self) -> Int32
 
 pub struct MsfLimits {
-  max_file_bytes : Int
-  max_directory_bytes : Int
-  max_streams : Int
-  max_stream_bytes : Int
+  max_file_bytes : Int32
+  max_directory_bytes : Int32
+  max_streams : Int32
+  max_stream_bytes : Int32
 }
 pub fn MsfLimits::default() -> Self
 
 pub struct MsfStream {
-  index : Int
-  size : Int
-  blocks : Array[Int]
+  index : Int32
+  size : Int32
+  blocks : Array[Int32]
 }
-pub fn MsfStream::block_count(Self) -> Int
-pub fn MsfStream::index(Self) -> Int
-pub fn MsfStream::size(Self) -> Int
+pub fn MsfStream::block_count(Self) -> Int32
+pub fn MsfStream::index(Self) -> Int32
+pub fn MsfStream::size(Self) -> Int32
 
 pub struct NamedStream {
   name : String
-  stream_index : Int
+  stream_index : Int32
 }
 pub fn NamedStream::name(Self) -> String
-pub fn NamedStream::stream_index(Self) -> Int
+pub fn NamedStream::stream_index(Self) -> Int32
+
+pub enum NumericValue {
+  Signed(Int64)
+  Unsigned(UInt64)
+  Opaque(UInt16, Bytes)
+}
+pub fn NumericValue::as_signed(Self) -> Int64?
+pub fn NumericValue::as_unsigned(Self) -> UInt64?
+
+pub struct ObjectNameSymbol {
+  signature : UInt32
+  name : String
+}
+pub fn ObjectNameSymbol::name(Self) -> String
+pub fn ObjectNameSymbol::signature(Self) -> UInt32
 
 pub struct PdbInfo {
-  version : UInt
-  signature : UInt
-  age : UInt
+  version : UInt32
+  signature : UInt32
+  age : UInt32
   guid : Bytes
   named_streams : Array[NamedStream]
-  feature_codes : Array[UInt]
+  feature_codes : Array[UInt32]
 }
-pub fn PdbInfo::age(Self) -> UInt
-pub fn PdbInfo::feature_codes(Self) -> Array[UInt]
+pub fn PdbInfo::age(Self) -> UInt32
+pub fn PdbInfo::feature_codes(Self) -> Array[UInt32]
 pub fn PdbInfo::guid(Self) -> Bytes
 pub fn PdbInfo::guid_string(Self) -> String
-pub fn PdbInfo::has_feature(Self, UInt) -> Bool
-pub fn PdbInfo::named_stream_count(Self) -> Int
-pub fn PdbInfo::named_stream_index(Self, String) -> Int?
+pub fn PdbInfo::has_feature(Self, UInt32) -> Bool
+pub fn PdbInfo::named_stream_count(Self) -> Int32
+pub fn PdbInfo::named_stream_index(Self, String) -> Int32?
 pub fn PdbInfo::named_streams(Self) -> Array[NamedStream]
-pub fn PdbInfo::signature(Self) -> UInt
-pub fn PdbInfo::version(Self) -> UInt
+pub fn PdbInfo::signature(Self) -> UInt32
+pub fn PdbInfo::version(Self) -> UInt32
 
 pub struct PdbInfoLimits {
-  max_string_bytes : Int
-  max_named_streams : Int
-  max_hash_capacity : Int
-  max_features : Int
+  max_string_bytes : Int32
+  max_named_streams : Int32
+  max_hash_capacity : Int32
+  max_features : Int32
 }
 pub fn PdbInfoLimits::default() -> Self
+
+pub struct PeImage {
+  machine : UInt16
+  section_count : UInt16
+  timestamp : UInt32
+  optional_magic : UInt16
+  image_base : UInt64
+  sections : Array[PeSection]
+}
+pub fn PeImage::image_base(Self) -> UInt64
+pub fn PeImage::machine(Self) -> UInt16
+pub fn PeImage::map_segment_offset(Self, UInt16, UInt32) -> RvaLocation?
+pub fn PeImage::optional_magic(Self) -> UInt16
+pub fn PeImage::section_at(Self, Int32) -> PeSection?
+pub fn PeImage::section_count(Self) -> UInt16
+pub fn PeImage::timestamp(Self) -> UInt32
+
+pub struct PeLimits {
+  max_file_bytes : Int32
+  max_sections : Int32
+}
+pub fn PeLimits::default() -> Self
+
+pub struct PeSection {
+  name : String
+  virtual_size : UInt32
+  virtual_address : UInt32
+  raw_size : UInt32
+  raw_pointer : UInt32
+  characteristics : UInt32
+}
+pub fn PeSection::characteristics(Self) -> UInt32
+pub fn PeSection::name(Self) -> String
+pub fn PeSection::raw_pointer(Self) -> UInt32
+pub fn PeSection::raw_size(Self) -> UInt32
+pub fn PeSection::virtual_address(Self) -> UInt32
+pub fn PeSection::virtual_size(Self) -> UInt32
+pub fn PeSection::virtual_span(Self) -> UInt32
+
+pub struct PointerType {
+  referent_type : UInt32
+  attributes : UInt32
+  containing_type : UInt32?
+  member_representation : UInt16?
+}
+pub fn PointerType::attributes(Self) -> UInt32
+pub fn PointerType::byte_size(Self) -> Int32
+pub fn PointerType::containing_type(Self) -> UInt32?
+pub fn PointerType::is_const(Self) -> Bool
+pub fn PointerType::is_restrict(Self) -> Bool
+pub fn PointerType::is_unaligned(Self) -> Bool
+pub fn PointerType::is_volatile(Self) -> Bool
+pub fn PointerType::kind(Self) -> UInt32
+pub fn PointerType::member_representation(Self) -> UInt16?
+pub fn PointerType::mode(Self) -> UInt32
+pub fn PointerType::referent_type(Self) -> UInt32
+
+pub struct ProcedureReferenceSymbol {
+  name_hash : UInt32
+  symbol_offset : UInt32
+  module_index : UInt16
+  name : String
+}
+pub fn ProcedureReferenceSymbol::module_index(Self) -> UInt16
+pub fn ProcedureReferenceSymbol::name(Self) -> String
+pub fn ProcedureReferenceSymbol::name_hash(Self) -> UInt32
+pub fn ProcedureReferenceSymbol::symbol_offset(Self) -> UInt32
+
+pub struct ProcedureSymbol {
+  parent : UInt32
+  end : UInt32
+  next : UInt32
+  code_size : UInt32
+  debug_start : UInt32
+  debug_end : UInt32
+  function_type : UInt32
+  code_offset : UInt32
+  segment : UInt16
+  flags : Int32
+  name : String
+}
+pub fn ProcedureSymbol::code_offset(Self) -> UInt32
+pub fn ProcedureSymbol::code_size(Self) -> UInt32
+pub fn ProcedureSymbol::debug_end(Self) -> UInt32
+pub fn ProcedureSymbol::debug_start(Self) -> UInt32
+pub fn ProcedureSymbol::end(Self) -> UInt32
+pub fn ProcedureSymbol::flags(Self) -> Int32
+pub fn ProcedureSymbol::function_type(Self) -> UInt32
+pub fn ProcedureSymbol::name(Self) -> String
+pub fn ProcedureSymbol::next(Self) -> UInt32
+pub fn ProcedureSymbol::parent(Self) -> UInt32
+pub fn ProcedureSymbol::segment(Self) -> UInt16
+
+pub struct ProcedureType {
+  return_type : UInt32
+  calling_convention : Int32
+  function_options : Int32
+  parameter_count : UInt16
+  argument_list : UInt32
+}
+pub fn ProcedureType::argument_list(Self) -> UInt32
+pub fn ProcedureType::calling_convention(Self) -> Int32
+pub fn ProcedureType::function_options(Self) -> Int32
+pub fn ProcedureType::parameter_count(Self) -> UInt16
+pub fn ProcedureType::return_type(Self) -> UInt32
+
+pub struct PublicSectionOffset {
+  offset : UInt32
+  section : UInt16
+}
+pub fn PublicSectionOffset::offset(Self) -> UInt32
+pub fn PublicSectionOffset::section(Self) -> UInt16
+
+pub struct PublicSymbol {
+  flags : UInt32
+  offset : UInt32
+  segment : UInt16
+  name : String
+}
+pub fn PublicSymbol::flags(Self) -> UInt32
+pub fn PublicSymbol::name(Self) -> String
+pub fn PublicSymbol::offset(Self) -> UInt32
+pub fn PublicSymbol::segment(Self) -> UInt16
+
+pub struct PublicsHeader {
+  symbol_hash : UInt32
+  address_map_bytes : UInt32
+  thunk_count : UInt32
+  thunk_size : UInt32
+  thunk_table_section : UInt16
+  thunk_table_offset : UInt32
+  section_count : UInt32
+}
+pub fn PublicsHeader::address_map_bytes(Self) -> UInt32
+pub fn PublicsHeader::section_count(Self) -> UInt32
+pub fn PublicsHeader::symbol_hash(Self) -> UInt32
+pub fn PublicsHeader::thunk_count(Self) -> UInt32
+pub fn PublicsHeader::thunk_size(Self) -> UInt32
+pub fn PublicsHeader::thunk_table_offset(Self) -> UInt32
+pub fn PublicsHeader::thunk_table_section(Self) -> UInt16
+
+pub struct PublicsStream {
+  header : PublicsHeader
+  gsi : GsiTable
+  address_map : Array[UInt32]
+  thunk_map : Array[UInt32]
+  section_offsets : Array[PublicSectionOffset]
+  public_symbols : Array[ResolvedPublicSymbol]
+}
+pub fn PublicsStream::address_map(Self) -> Array[UInt32]
+pub fn PublicsStream::find_public_exact(Self, UInt16, UInt32) -> ResolvedPublicSymbol?
+pub fn PublicsStream::find_public_nearest(Self, UInt16, UInt32) -> ResolvedPublicSymbol?
+pub fn PublicsStream::gsi(Self) -> GsiTable
+pub fn PublicsStream::header(Self) -> PublicsHeader
+pub fn PublicsStream::public_symbol_at(Self, Int32) -> ResolvedPublicSymbol?
+pub fn PublicsStream::public_symbol_count(Self) -> Int32
+pub fn PublicsStream::section_offsets(Self) -> Array[PublicSectionOffset]
+pub fn PublicsStream::thunk_map(Self) -> Array[UInt32]
+
+pub struct RegRelativeSymbol {
+  offset : UInt32
+  type_index : UInt32
+  register : UInt16
+  name : String
+}
+pub fn RegRelativeSymbol::name(Self) -> String
+pub fn RegRelativeSymbol::offset(Self) -> UInt32
+pub fn RegRelativeSymbol::register(Self) -> UInt16
+pub fn RegRelativeSymbol::type_index(Self) -> UInt32
+
+pub struct ResolvedPublicSymbol {
+  symbol_offset : UInt32
+  flags : UInt32
+  segment : UInt16
+  offset : UInt32
+  name : String
+}
+pub fn ResolvedPublicSymbol::flags(Self) -> UInt32
+pub fn ResolvedPublicSymbol::name(Self) -> String
+pub fn ResolvedPublicSymbol::offset(Self) -> UInt32
+pub fn ResolvedPublicSymbol::segment(Self) -> UInt16
+pub fn ResolvedPublicSymbol::symbol_offset(Self) -> UInt32
+
+pub struct RvaLocation {
+  segment : UInt16
+  section_offset : UInt32
+  section_name : String
+  rva : UInt32
+  image_address : UInt64
+}
+pub fn RvaLocation::image_address(Self) -> UInt64
+pub fn RvaLocation::rva(Self) -> UInt32
+pub fn RvaLocation::section_name(Self) -> String
+pub fn RvaLocation::section_offset(Self) -> UInt32
+pub fn RvaLocation::segment(Self) -> UInt16
+
+pub struct SectionContribution {
+  version : SectionContributionVersion
+  section_index : UInt16
+  offset : Int32
+  size : Int32
+  characteristics : UInt32
+  module_index : UInt16
+  data_crc : UInt32
+  relocation_crc : UInt32
+  coff_section_index : UInt32?
+}
+pub fn SectionContribution::characteristics(Self) -> UInt32
+pub fn SectionContribution::coff_section_index(Self) -> UInt32?
+pub fn SectionContribution::data_crc(Self) -> UInt32
+pub fn SectionContribution::module_index(Self) -> UInt16
+pub fn SectionContribution::offset(Self) -> Int32
+pub fn SectionContribution::relocation_crc(Self) -> UInt32
+pub fn SectionContribution::section_index(Self) -> UInt16
+pub fn SectionContribution::size(Self) -> Int32
+pub fn SectionContribution::version(Self) -> SectionContributionVersion
+
+pub enum SectionContributionVersion {
+  None
+  V60
+  V2
+}
+
+pub struct SectionMap {
+  physical_count : UInt16
+  logical_count : UInt16
+  entries : Array[SectionMapEntry]
+}
+pub fn SectionMap::entry(Self, Int32) -> SectionMapEntry?
+pub fn SectionMap::entry_count(Self) -> Int32
+pub fn SectionMap::logical_count(Self) -> UInt16
+pub fn SectionMap::physical_count(Self) -> UInt16
+
+pub struct SectionMapEntry {
+  flags : UInt16
+  overlay : UInt16
+  group : UInt16
+  frame : UInt16
+  section_name_offset : UInt16
+  class_name_offset : UInt16
+  offset : UInt32
+  byte_length : UInt32
+}
+pub fn SectionMapEntry::byte_length(Self) -> UInt32
+pub fn SectionMapEntry::class_name_offset(Self) -> UInt16
+pub fn SectionMapEntry::flags(Self) -> UInt16
+pub fn SectionMapEntry::frame(Self) -> UInt16
+pub fn SectionMapEntry::group(Self) -> UInt16
+pub fn SectionMapEntry::offset(Self) -> UInt32
+pub fn SectionMapEntry::overlay(Self) -> UInt16
+pub fn SectionMapEntry::section_name_offset(Self) -> UInt16
+
+pub struct SimpleType {
+  raw : UInt32
+  base : Int32
+  mode : SimpleTypeMode
+  kind : SimpleTypeKind
+  name : String
+  byte_size : Int32
+}
+pub fn SimpleType::base(Self) -> Int32
+pub fn SimpleType::byte_size(Self) -> Int32
+pub fn SimpleType::is_pointer(Self) -> Bool
+pub fn SimpleType::kind(Self) -> SimpleTypeKind
+pub fn SimpleType::mode(Self) -> SimpleTypeMode
+pub fn SimpleType::name(Self) -> String
+pub fn SimpleType::raw(Self) -> UInt32
+
+pub enum SimpleTypeKind {
+  NoType
+  Void
+  SignedInteger
+  UnsignedInteger
+  Boolean
+  Real
+  Character
+  WideCharacter
+  Bit
+  Unknown
+}
+
+pub enum SimpleTypeMode {
+  Direct
+  NearPointer
+  FarPointer
+  HugePointer
+  Pointer32
+  FarPointer32
+  Pointer64
+  Reserved
+}
+
+pub struct SourceLocation {
+  segment : UInt16
+  code_offset : UInt32
+  file_path : String
+  line_start : UInt32
+  line_end : UInt32
+  is_statement : Bool
+  columns : LineColumnRange?
+}
+pub fn SourceLocation::code_offset(Self) -> UInt32
+pub fn SourceLocation::columns(Self) -> LineColumnRange?
+pub fn SourceLocation::file_path(Self) -> String
+pub fn SourceLocation::is_statement(Self) -> Bool
+pub fn SourceLocation::line_end(Self) -> UInt32
+pub fn SourceLocation::line_start(Self) -> UInt32
+pub fn SourceLocation::segment(Self) -> UInt16
+
+pub struct StringIdType {
+  id : UInt32
+  value : String
+}
+pub fn StringIdType::id(Self) -> UInt32
+pub fn StringIdType::value(Self) -> String
+
+pub enum SymbolDetails {
+  Public(PublicSymbol)
+  Data(DataSymbol)
+  Procedure(ProcedureSymbol)
+  Thunk(ThunkSymbol)
+  Block(BlockSymbol)
+  Label(LabelSymbol)
+  Constant(ConstantSymbol)
+  Udt(UdtSymbol)
+  ObjectName(ObjectNameSymbol)
+  BPRelative(BPRelativeSymbol)
+  RegRelative(RegRelativeSymbol)
+  ProcedureReference(ProcedureReferenceSymbol)
+  FrameProcedure(FrameProcedureSymbol)
+  ScopeEnd
+  Unknown(UnknownSymbol)
+}
+
+pub struct SymbolLimits {
+  max_stream_bytes : Int32
+  max_records : Int32
+  max_record_bytes : Int32
+  max_global_refs : Int32
+  max_hash_records : Int32
+  max_public_symbols : Int32
+}
+pub fn SymbolLimits::default() -> Self
+
+pub struct SymbolRecord {
+  offset : Int32
+  kind : UInt16
+  details : SymbolDetails
+}
+pub fn SymbolRecord::details(Self) -> SymbolDetails
+pub fn SymbolRecord::kind(Self) -> UInt16
+pub fn SymbolRecord::offset(Self) -> Int32
+
+pub struct SymbolTable {
+  data : Bytes
+  records : Array[SymbolRecord]
+}
+pub fn SymbolTable::data(Self) -> Bytes
+pub fn SymbolTable::record_at(Self, Int32) -> SymbolRecord?
+pub fn SymbolTable::record_at_offset(Self, Int32) -> SymbolRecord?
+pub fn SymbolTable::record_count(Self) -> Int32
+pub fn SymbolTable::records(Self) -> Array[SymbolRecord]
+
+pub struct SymbolizedAddress {
+  segment : UInt16
+  section_offset : UInt32
+  section_name : String
+  rva : UInt32
+  image_address : UInt64
+  public_symbol : ResolvedPublicSymbol?
+  source : SourceLocation?
+}
+pub fn SymbolizedAddress::image_address(Self) -> UInt64
+pub fn SymbolizedAddress::public_symbol(Self) -> ResolvedPublicSymbol?
+pub fn SymbolizedAddress::rva(Self) -> UInt32
+pub fn SymbolizedAddress::section_name(Self) -> String
+pub fn SymbolizedAddress::section_offset(Self) -> UInt32
+pub fn SymbolizedAddress::segment(Self) -> UInt16
+pub fn SymbolizedAddress::source(Self) -> SourceLocation?
+
+pub struct ThunkSymbol {
+  parent : UInt32
+  end : UInt32
+  next : UInt32
+  offset : UInt32
+  segment : UInt16
+  length : UInt16
+  ordinal : Int32
+  name : String
+  variant_bytes : Bytes
+}
+pub fn ThunkSymbol::end(Self) -> UInt32
+pub fn ThunkSymbol::length(Self) -> UInt16
+pub fn ThunkSymbol::name(Self) -> String
+pub fn ThunkSymbol::next(Self) -> UInt32
+pub fn ThunkSymbol::offset(Self) -> UInt32
+pub fn ThunkSymbol::ordinal(Self) -> Int32
+pub fn ThunkSymbol::parent(Self) -> UInt32
+pub fn ThunkSymbol::segment(Self) -> UInt16
+pub fn ThunkSymbol::variant_bytes(Self) -> Bytes
+
+pub struct TpiHeader {
+  version : UInt32
+  header_size : Int32
+  type_index_begin : UInt32
+  type_index_end : UInt32
+  type_record_bytes : Int32
+  hash_stream_index : Int32
+  hash_aux_stream_index : Int32
+  hash_key_size : UInt32
+  hash_bucket_count : UInt32
+  hash_value_offset : Int32
+  hash_value_bytes : Int32
+  index_offset_offset : Int32
+  index_offset_bytes : Int32
+  hash_adjust_offset : Int32
+  hash_adjust_bytes : Int32
+}
+pub fn TpiHeader::hash_adjust_bytes(Self) -> Int32
+pub fn TpiHeader::hash_adjust_offset(Self) -> Int32
+pub fn TpiHeader::hash_aux_stream_index(Self) -> Int32
+pub fn TpiHeader::hash_bucket_count(Self) -> UInt32
+pub fn TpiHeader::hash_key_size(Self) -> UInt32
+pub fn TpiHeader::hash_stream_index(Self) -> Int32
+pub fn TpiHeader::hash_value_bytes(Self) -> Int32
+pub fn TpiHeader::hash_value_offset(Self) -> Int32
+pub fn TpiHeader::header_size(Self) -> Int32
+pub fn TpiHeader::index_offset_bytes(Self) -> Int32
+pub fn TpiHeader::index_offset_offset(Self) -> Int32
+pub fn TpiHeader::type_index_begin(Self) -> UInt32
+pub fn TpiHeader::type_index_end(Self) -> UInt32
+pub fn TpiHeader::type_record_bytes(Self) -> Int32
+pub fn TpiHeader::type_record_count(Self) -> UInt32
+pub fn TpiHeader::version(Self) -> UInt32
+
+pub struct TpiLimits {
+  max_stream_bytes : Int32
+  max_records : Int32
+  max_record_bytes : Int32
+  max_type_refs : Int32
+}
+pub fn TpiLimits::default() -> Self
+
+pub enum TypeDetails {
+  Modifier(ModifierType)
+  Pointer(PointerType)
+  Procedure(ProcedureType)
+  MemberFunction(MemberFunctionType)
+  ArgList(ArgListType)
+  FieldList(FieldListType)
+  BitField(BitFieldType)
+  Array(ArrayType)
+  Aggregate(AggregateType)
+  Union(UnionType)
+  Enum(EnumType)
+  Alias(AliasType)
+  Label(LabelType)
+  FunctionId(FunctionIdType)
+  MemberFunctionId(MemberFunctionIdType)
+  StringId(StringIdType)
+  BuildInfo(BuildInfoType)
+  UdtSourceLine(UdtSourceLineType)
+  TypeServer2(TypeServer2Type)
+  Unknown(UnknownType)
+}
+
+pub struct TypeRecord {
+  type_index : UInt32
+  kind : UInt16
+  payload : Bytes
+  details : TypeDetails
+}
+pub fn TypeRecord::details(Self) -> TypeDetails
+pub fn TypeRecord::kind(Self) -> UInt16
+pub fn TypeRecord::payload(Self) -> Bytes
+pub fn TypeRecord::type_index(Self) -> UInt32
+
+pub struct TypeServer2Type {
+  guid : Bytes
+  age : UInt32
+  name : String
+}
+pub fn TypeServer2Type::age(Self) -> UInt32
+pub fn TypeServer2Type::guid(Self) -> Bytes
+pub fn TypeServer2Type::name(Self) -> String
+
+pub struct TypeTable {
+  data : Bytes
+  header : TpiHeader
+  records : Array[TypeRecord]
+}
+pub fn TypeTable::data(Self) -> Bytes
+pub fn TypeTable::header(Self) -> TpiHeader
+pub fn TypeTable::record(Self, UInt32) -> TypeRecord?
+pub fn TypeTable::record_at(Self, Int32) -> TypeRecord?
+pub fn TypeTable::record_count(Self) -> Int32
+pub fn TypeTable::records(Self) -> Array[TypeRecord]
+
+pub struct UdtSourceLineType {
+  udt : UInt32
+  source_file : UInt32
+  line_number : UInt32
+  module_index : UInt32?
+}
+pub fn UdtSourceLineType::line_number(Self) -> UInt32
+pub fn UdtSourceLineType::module_index(Self) -> UInt32?
+pub fn UdtSourceLineType::source_file(Self) -> UInt32
+pub fn UdtSourceLineType::udt(Self) -> UInt32
+
+pub struct UdtSymbol {
+  type_index : UInt32
+  name : String
+}
+pub fn UdtSymbol::name(Self) -> String
+pub fn UdtSymbol::type_index(Self) -> UInt32
+
+pub struct UnionType {
+  member_count : UInt16
+  properties : UInt16
+  field_list : UInt32
+  size : NumericValue
+  name : String
+  unique_name : String?
+}
+pub fn UnionType::field_list(Self) -> UInt32
+pub fn UnionType::member_count(Self) -> UInt16
+pub fn UnionType::name(Self) -> String
+pub fn UnionType::properties(Self) -> UInt16
+pub fn UnionType::size(Self) -> NumericValue
+pub fn UnionType::unique_name(Self) -> String?
+
+pub struct UnknownSymbol {
+  kind : UInt16
+  payload : Bytes
+}
+pub fn UnknownSymbol::kind(Self) -> UInt16
+pub fn UnknownSymbol::payload(Self) -> Bytes
+
+pub struct UnknownType {
+  kind : UInt16
+  payload : Bytes
+}
+pub fn UnknownType::kind(Self) -> UInt16
+pub fn UnknownType::payload(Self) -> Bytes
 
 // Type aliases
 

@@ -7,60 +7,62 @@
 - 邮箱：2735527267@qq.com
 - GitHub：https://github.com/LC6543
 - 仓库：https://github.com/LC6543/moonpdb
+- Mooncakes：LC6543/moonpdb
 - 项目方向：语言和开发工具 / 调试信息与二进制基础设施
-- 项目性质：依据公开的 Microsoft PDB 7.0 / MSF 格式原创实现
 - 许可证：Apache-2.0
 
-## 项目简介
+## 最终目标
 
-MoonPDB 为 MoonBit 提供纯 MoonBit 的 Windows PDB 7.0 调试信息读取能力。它面向需要在非 Windows 主程序、CI 服务、崩溃分析工具或 MoonBit 自建调试工具中读取 Windows 符号的开发者，目标是让 PDB 不再只能通过 Windows SDK、DIA 或 C++ 库访问。
+MoonPDB 的最终目标是提供一个纯 MoonBit、只读、资源有界的完整 Microsoft PDB 7.0
+核心格式读取器。完整兼容指：合法 PDB 7.0 的 MSF 容器、PDB Info、TPI/IPI、DBI、
+模块流、public/global 符号、CodeView 符号和行号流均可被定位和有界读取；已支持的
+记录给出类型化语义，未知或扩展记录保留原始字节和错误原因，不静默丢失。
 
-PDB 文件不是简单的记录流。外层是 MSF 容器，内部有 stream directory、PDB Info、TPI/IPI、DBI、模块信息和符号流。MoonPDB 按这些层逐步实现，所有读取都带边界、数量和内存上限，适合处理不可信的构建产物。
+项目面向 CI、崩溃分析、构建审计和 MoonBit 调试工具。PDB 与 DWARF 是不同格式；
+Mooncakes 已有 DWARF、ELF 和数据库接口，但没有 Microsoft PDB 7.0 读取器。本项目是
+新工程，不维护、不修改也不重复上述项目。
 
-## 生态缺口
+## 已完成的现有基础
 
-截至 2026-10-18，Mooncakes 查重结果：
+- 已发布 `LC6543/moonpdb@0.1.0`：MSF superblock、block map、stream directory、
+  PDB Info、GUID/age、named streams 和 feature codes。
+- 当前有效源码约 8,800 行、测试约 2,400 行；`moon check --deny-warn` 和
+  `moon test --deny-warn` 通过，现有 52 个测试。
+- 已配置 GitHub Actions、Apache-2.0、README、安全策略、贡献指南和版本记录。
 
-- `moon search moonpdb`：没有同名模块。
-- `moon search "moon-pdb"`：没有结果。
-- `moon search pdb7`：没有结果。
-- `moon view LC6543/moonpdb`：registry 返回 404，名称未被占用。
-- `moon search "program database"`：没有 PDB 格式实现。
+## 本轮新增与后续里程碑
 
-现有 MoonBit 项目中有 DWARF、ELF、BAP 和数据库接口，但没有 Microsoft PDB 读取器。PDB 与 DWARF 是不同格式，本项目不会重复或修改这些项目。
+1. TPI/IPI：56 字节头部、类型索引范围、记录框架、simple type、modifier、pointer、
+   procedure、member function、arglist、bitfield、array、class/struct/interface、
+   union、enum、alias、label、function/member/string ID、build info、UDT source line、
+   type server 和未知记录保留；field-list 子记录在下一功能中类型化。
+2. 已完成 DBI 头、模块列表、section contributions、section map、文件信息、EC 子流和
+   可选调试头；后续补模块调试流中的符号与行号语义。
+3. 已完成符号记录框架、模块调试流，以及 `S_PUB32`、`S_GDATA32`、`S_LDATA32`、
+   `S_GPROC32`、`S_LPROC32`、`S_THUNK32`、`S_BLOCK32`、`S_LABEL32`、`S_CONSTANT`、
+   `S_UDT`、`S_PROCREF`、`S_FRAMEPROC` 和 `S_END`；Publics 头、GSI 头与桶、
+   address map、thunk map、section offsets、最近 public 地址查询和 Globals
+   名称哈希查询也已完成；inline site 等复杂记录先保真读取。
+4. 已完成 C13 子段框架、string table、文件校验和、行/列记录及 segment+offset
+   到源码路径和行号的基础映射。
+5. 已完成 PE32/PE32+ 头、image base、section table 和 segment+offset→RVA/VA 映射；
+   统一符号化结果可同时返回最近 public symbol、section、源码路径、行号和列号。
+   明确不宣称寄存器、局部变量、栈回溯、内联帧展开或反编译。
+6. 工具与验收：只读 CLI、真实 PDB 夹具、畸形输入测试、Mooncakes 发布、可复现 CI。
 
-## 三个使用场景
+## 技术路线与边界
 
-1. Windows 崩溃定位：CI 或服务端拿到 minidump 和 PDB 后，把地址映射到函数、源文件和行号。
-2. 构建产物审计：检查 PDB 与 PE 的 GUID/年龄是否匹配，统计模块、符号和源码路径，作为发布门禁的一部分。
-3. 调试器与编辑工具：为 MoonBit 编写的调试前端、符号浏览器或代码导航工具提供可复用的 PDB 数据层。
+所有层接收 `Bytes` 和显式限制，先验证偏移、数量、乘加溢出和分配上限，再读取数据。
+记录编号与 TPI/IPI 声明范围交叉校验；未知 leaf 保留原始 payload；已知但截断的记录
+返回结构化错误。测试覆盖合成合法输入、截断/越界/资源上限输入和真实 PDB 互操作。
 
-## 核心功能与交付边界
+不做：PDB 写入或生成、反汇编/反编译、调试器 UI、符号服务器认证，以及完整的
+ELF/DWARF/Mach-O/PE 解析器；PE 仅用于 image base 和 section 地址映射。格式资料来自
+Microsoft `microsoft-pdb` 公开头和 LLVM CodeView 文档，仓库持续记录来源与许可证。
 
-计划交付：
+## 当前申报状态
 
-- MSF superblock、block map、stream directory 和有界 stream 读取；
-- PDB Info stream、named stream map 和 GUID/age；
-- TPI/IPI type records 及常见类型字段解析；
-- DBI module list、public/global symbol streams 和 line tables；
-- 地址到函数、源文件和行号的符号化 API；
-- 可选原生 CLI，用于检查、列出和导出摘要；
-- 测试夹具、畸形输入测试、互操作验证、README、CI 和 Mooncakes 发布。
-
-明确不做：
-
-- ELF、DWARF、Mach-O 或 PE 的完整解析器；
-- 反汇编、反编译和调试器 UI；
-- 修改 PDB 或生成 PDB；
-- 连接符号服务器和实现认证协议；
-- 在首版实现全部 CodeView 记录语义。
-
-## 技术路线
-
-先实现纯函数、无 I/O 的 MSF 层，输入字节和限制参数，输出可查询的 stream 目录。后续层复用同一套边界读取器，避免每一层各自做不安全的整数和长度处理。所有 block index、stream size 和目录长度在分配前验证；对循环引用、过大元素数和截断输入返回结构化错误。
-
-测试分三层：手工构造的 MSF 夹具、畸形输入和边界测试、真实 Windows PDB 的互操作测试。格式参考 LLVM 的 PDB/MSF 文档和 Microsoft 公开的 microsoft-pdb 样例，仓库中记录来源与许可证。
-
-## 当前阶段
-
-本次申报对应初审版本：完成独立工程、MSF 容器解析、stream directory、PDB Info stream、命名 stream map 和基础测试。TPI、DBI、符号解析和 CLI 作为后续里程碑逐步提交。
+本轮重点回应初审反馈：把完整 PDB 7.0 兼容拆成可验收的层和记录清单，并将有效源码从
+约 700 行扩展到约 8,800 行，新增 TPI/IPI、DBI、CodeView 符号、Publics、
+Globals 名称索引、C13 行号、PE RVA 映射和统一符号化层。后续按一个功能一个提交
+继续实现 CLI 与真实 PDB/PE 互操作验收。

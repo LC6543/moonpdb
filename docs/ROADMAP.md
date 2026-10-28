@@ -10,23 +10,32 @@ The project is developed in independently testable protocol layers.
 
 ## v0.2 - Types
 
-- TPI and IPI stream headers
-- CodeView type record framing
-- Common primitive, pointer, aggregate, and member type decoding
-- Type-record bounds and cycle protection
+- [x] TPI and IPI stream headers
+- [x] Type-index ranges and CodeView record framing
+- [x] Simple, modifier, pointer, procedure, aggregate, enum, array, and alias types
+- [x] Bounded record traversal and raw preservation for unknown leaves
+- [ ] Field-list member records and LF_INDEX continuation chains
+- [ ] Full type hashing and lookup acceleration
 
 ## v0.3 - Symbols
 
-- DBI header and module list
-- Module information streams
-- Public and global symbol streams
-- Symbol name and address indexes
+- [x] DBI header, module list, and source-file mapping
+- [x] Section contributions, section map, EC/type-server substreams
+- [x] Optional debug header and indexed stream lookup
+- [x] Module debug stream segmentation and global-reference lists
+- [x] Common module/global CodeView symbol records
+- [x] Public GSI hash metadata, bitmap, compressed buckets, and address map
+- [x] Public/global exact and nearest segment-offset address lookup
+- [x] Global name-hash lookup and exact-name record matches
+- String-table and source-name indexes
 
 ## v0.4 - Source locations
 
-- Line tables and source-file mapping
-- Address-to-function and address-to-source lookup
-- Symbolication reports over captured addresses
+- [x] C13 line tables and source-file mapping
+- [x] Module segment-offset to source line lookup
+- [x] PE section mapping and unified address-to-source lookup
+- [x] Symbolication reports over captured addresses
+- [ ] Multi-module symbolication policy and CLI reports
 
 ## v0.5 - Tooling and interoperability
 
