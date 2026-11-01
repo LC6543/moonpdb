@@ -436,6 +436,16 @@ pub fn ModuleDebugStream::c13_info(
 }
 
 ///|
+/// Parse C13 data with a PDB `/names` table fallback.
+pub fn ModuleDebugStream::c13_info_with_fallback(
+  self : ModuleDebugStream,
+  fallback : DebugStringTable?,
+  limits : C13Limits,
+) -> C13DebugInfo raise SymbolError {
+  parse_c13_debug_info_with_fallback(self.c13_lines, fallback, limits)
+}
+
+///|
 /// Read a module debug stream and parse its C13 line information.
 pub fn MsfFile::module_c13_info(
   self : MsfFile,
@@ -445,12 +455,32 @@ pub fn MsfFile::module_c13_info(
   limits : C13Limits,
 ) -> C13DebugInfo raise SymbolError {
   let debug = self.module_debug_stream(dbi, module_index, symbol_limits)
-  debug.c13_info(limits)
+  let fallback = try {
+    let info = self.pdb_info(PdbInfoLimits::default())
+    let names = self.pdb_string_table(
+      info,
+      "/names",
+      PdbStringTableLimits::default(),
+    )
+    Some(names.strings())
+  } catch {
+    _ => None
+  }
+  debug.c13_info_with_fallback(fallback, limits)
 }
 
 ///|
 pub fn parse_c13_debug_info(
   data : Bytes,
+  limits : C13Limits,
+) -> C13DebugInfo raise SymbolError {
+  parse_c13_debug_info_with_fallback(data, None, limits)
+}
+
+///|
+pub fn parse_c13_debug_info_with_fallback(
+  data : Bytes,
+  fallback : DebugStringTable?,
   limits : C13Limits,
 ) -> C13DebugInfo raise SymbolError {
   if data.length() > limits.max_bytes {
@@ -463,6 +493,10 @@ pub fn parse_c13_debug_info(
       string_table = Some(DebugStringTable::{ bytes: subsection.payload, })
       break
     }
+  }
+  let string_table = match string_table {
+    Some(value) => Some(value)
+    None => fallback
   }
   let checksums = if has_c13_subsection(subsections, C13_KIND_FILE_CHECKSUMS) {
     let table = match string_table {

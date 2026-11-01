@@ -29,12 +29,14 @@ Publics/GSI address index, Globals name index, C13 line information, and PE
 address mapping. TPI/IPI includes typed FIELDLIST members and LF_INDEX
 continuation chains. DBI support includes module descriptors, section
 contributions, the section map, source-file mapping, EC/type-server substreams,
-and optional debug stream indexes. See
+and optional debug stream indexes. C13 source names may come from a
+module-local StringTable or the global PDB `/names` stream. See
 [docs/msf.md](docs/msf.md), [docs/pdb-info.md](docs/pdb-info.md),
 [docs/tpi.md](docs/tpi.md), [docs/dbi.md](docs/dbi.md),
 [docs/symbols.md](docs/symbols.md), [docs/publics.md](docs/publics.md),
 [docs/globals.md](docs/globals.md), [docs/c13.md](docs/c13.md),
-[docs/pe.md](docs/pe.md), and [docs/symbolication.md](docs/symbolication.md).
+[docs/pdb-names.md](docs/pdb-names.md), [docs/pe.md](docs/pe.md), and
+[docs/symbolication.md](docs/symbolication.md).
 
 ## Usage
 
@@ -85,7 +87,8 @@ moon run cmd/main -- address app.exe app.pdb 1 0x1000
 ```
 
 The repository includes pinned LLVM PDB and PE fixtures with checksums and
-license provenance in [test-data/llvm](test-data/llvm).
+license provenance in [test-data/llvm](test-data/llvm), plus a reproducible
+matching PE/PDB source-line fixture in [test-data/demo](test-data/demo).
 
 ## Documentation
 
@@ -97,6 +100,7 @@ license provenance in [test-data/llvm](test-data/llvm).
 - [Publics and GSI address index](docs/publics.md)
 - [Globals name index](docs/globals.md)
 - [C13 line information](docs/c13.md)
+- [PDB `/names` string table](docs/pdb-names.md)
 - [PE image mapping](docs/pe.md)
 - [Unified symbolication](docs/symbolication.md)
 - [Inspection CLI](docs/cli.md)

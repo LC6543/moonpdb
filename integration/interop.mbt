@@ -27,3 +27,15 @@ pub fn parse_fixture_pe() -> @lib.PeImage raise @fs.IOError {
     _ => raise @fs.IOError("could not parse the pinned PE fixture")
   }
 }
+
+///|
+/// Read the generated matching PE+PDB demo PDB.
+pub fn read_demo_pdb() -> Bytes raise @fs.IOError {
+  @fs.read_file_to_bytes("test-data/demo/sample-tiny.pdb")
+}
+
+///|
+/// Read the generated matching PE+PDB demo executable.
+pub fn read_demo_pe() -> Bytes raise @fs.IOError {
+  @fs.read_file_to_bytes("test-data/demo/sample-tiny.exe")
+}

@@ -74,6 +74,8 @@ pub suberror SymbolError {
   InvalidLineInfo(String)
   MissingC13StringTable
   C13LimitExceeded(String)
+  InvalidPdbStringTable(String)
+  PdbStringTableUnavailable
 }
 
 ///|

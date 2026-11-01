@@ -6,6 +6,8 @@ pub fn hash_string_v1(String) -> UInt32
 
 pub fn parse_c13_debug_info(Bytes, C13Limits) -> C13DebugInfo raise SymbolError
 
+pub fn parse_c13_debug_info_with_fallback(Bytes, DebugStringTable?, C13Limits) -> C13DebugInfo raise SymbolError
+
 pub fn parse_dbi(Bytes, DbiLimits) -> DbiFile raise DbiError
 
 pub fn parse_globals_stream(Bytes, SymbolTable, SymbolLimits) -> GlobalsStream raise SymbolError
@@ -17,6 +19,8 @@ pub fn parse_msf(Bytes, MsfLimits) -> MsfFile raise MsfError
 pub fn parse_msf_header(Bytes, MsfLimits) -> MsfHeader raise MsfError
 
 pub fn parse_pdb_info(Bytes, Int32, PdbInfoLimits) -> PdbInfo raise PdbInfoError
+
+pub fn parse_pdb_string_table(Bytes, PdbStringTableLimits) -> PdbStringTable raise SymbolError
 
 pub fn parse_pe_image(Bytes, PeLimits) -> PeImage raise PeError
 
@@ -101,6 +105,8 @@ pub suberror SymbolError {
   InvalidLineInfo(String)
   MissingC13StringTable
   C13LimitExceeded(String)
+  InvalidPdbStringTable(String)
+  PdbStringTableUnavailable
 }
 
 pub suberror TpiError {
@@ -664,6 +670,7 @@ pub struct ModuleDebugStream {
 }
 pub fn ModuleDebugStream::c11_lines(Self) -> Bytes
 pub fn ModuleDebugStream::c13_info(Self, C13Limits) -> C13DebugInfo raise SymbolError
+pub fn ModuleDebugStream::c13_info_with_fallback(Self, DebugStringTable?, C13Limits) -> C13DebugInfo raise SymbolError
 pub fn ModuleDebugStream::c13_lines(Self) -> Bytes
 pub fn ModuleDebugStream::global_refs(Self) -> Array[UInt32]
 pub fn ModuleDebugStream::signature(Self) -> UInt32
@@ -681,6 +688,7 @@ pub fn MsfFile::ipi(Self, TpiLimits) -> TypeTable raise TpiError
 pub fn MsfFile::module_c13_info(Self, DbiFile, Int32, SymbolLimits, C13Limits) -> C13DebugInfo raise SymbolError
 pub fn MsfFile::module_debug_stream(Self, DbiFile, Int32, SymbolLimits) -> ModuleDebugStream raise SymbolError
 pub fn MsfFile::pdb_info(Self, PdbInfoLimits) -> PdbInfo raise PdbInfoError
+pub fn MsfFile::pdb_string_table(Self, PdbInfo, String, PdbStringTableLimits) -> PdbStringTable raise SymbolError
 pub fn MsfFile::publics_stream(Self, DbiFile, SymbolLimits) -> PublicsStream raise SymbolError
 pub fn MsfFile::stream(Self, Int32) -> Bytes raise MsfError
 pub fn MsfFile::stream_count(Self) -> Int32
@@ -793,6 +801,27 @@ pub struct PdbInfoLimits {
   max_features : Int32
 }
 pub fn PdbInfoLimits::default() -> Self
+
+pub struct PdbStringTable {
+  signature : UInt32
+  hash_version : UInt32
+  strings : DebugStringTable
+  name_ids : Array[UInt32]
+  name_count : UInt32
+}
+pub fn PdbStringTable::hash_version(Self) -> UInt32
+pub fn PdbStringTable::name_count(Self) -> UInt32
+pub fn PdbStringTable::name_id_at(Self, Int32) -> UInt32?
+pub fn PdbStringTable::name_id_count(Self) -> Int32
+pub fn PdbStringTable::signature(Self) -> UInt32
+pub fn PdbStringTable::string_for_id(Self, UInt32) -> String?
+pub fn PdbStringTable::strings(Self) -> DebugStringTable
+
+pub struct PdbStringTableLimits {
+  max_bytes : Int32
+  max_names : Int32
+}
+pub fn PdbStringTableLimits::default() -> Self
 
 pub struct PeImage {
   machine : UInt16

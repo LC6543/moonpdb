@@ -31,3 +31,31 @@ test "parse a real PE32+ image and map a section offset" {
   assert_eq(mapped.segment(), 1)
   assert_true(mapped.rva() >= image.section_at(0).unwrap().virtual_address())
 }
+
+///|
+test "symbolicate a matching generated PE and PDB to source" {
+  let pdb = @integration.read_demo_pdb()
+  let pe_bytes = @integration.read_demo_pe()
+  let msf = @lib.parse_msf(pdb, @lib.MsfLimits::default())
+  let pe = @lib.parse_pe_image(pe_bytes, @lib.PeLimits::default())
+  let dbi = msf.dbi(@lib.DbiLimits::default())
+  let publics = msf.publics_stream(dbi, @lib.SymbolLimits::default())
+  let info = msf.pdb_info(@lib.PdbInfoLimits::default())
+  let names = msf.pdb_string_table(
+    info,
+    "/names",
+    @lib.PdbStringTableLimits::default(),
+  )
+  assert_true(names.name_id_count() > 0)
+  let c13 = msf.module_c13_info(
+    dbi,
+    0,
+    @lib.SymbolLimits::default(),
+    @lib.C13Limits::default(),
+  )
+  let result = @lib.symbolicate_address(pe, publics, [c13], 1, 0).unwrap()
+  assert_eq(result.public_symbol().unwrap().name(), "moonpdb_add")
+  let source = result.source().unwrap()
+  assert_true(source.file_path().contains("sample.c"))
+  assert_eq(source.line_start(), 4U)
+}

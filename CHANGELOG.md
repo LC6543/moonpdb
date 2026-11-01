@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here.
 
+## 0.3.2 - 2026-11-01
+
+### Added
+
+- PDB `/names` string-table parser with IDs, hash version, and bounds checks
+- C13 source-name fallback from module-local StringTable to global `/names`
+- Reproducible matching PE+PDB demo fixture generated with Zig/LLD
+- End-to-end public-symbol and source-line symbolication test
+
+### Fixed
+
+- Real Clang/LLD C13 checksums without a module-local StringTable
+
 ## 0.3.1 - 2026-11-01
 
 ### Fixed

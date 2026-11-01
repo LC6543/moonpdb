@@ -27,7 +27,7 @@ The project is developed in independently testable protocol layers.
 - [x] Public GSI hash metadata, bitmap, compressed buckets, and address map
 - [x] Public/global exact and nearest segment-offset address lookup
 - [x] Global name-hash lookup and exact-name record matches
-- String-table and source-name indexes
+- [x] PDB `/names` string-table and source-name indexes
 
 ## v0.4 - Source locations
 
@@ -43,6 +43,7 @@ The project is developed in independently testable protocol layers.
 - [x] Pinned real Windows PDB and PE fixtures
 - [x] Qpid-independent PDB interoperability tests
 - [x] README examples and reproducible CI evidence
+- [x] Matching PE/PDB end-to-end source-line demonstration
 
 ## v1.0 - Stable release
 

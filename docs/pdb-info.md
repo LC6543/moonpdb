@@ -12,6 +12,7 @@ locate its named streams.
 - Serialized uint32 hash table with sparse present/deleted bit vectors;
   zero-word deleted vectors are accepted as all-zero
 - Name-to-MSF-stream-index lookup
+- Global PDB `/names` string-table access for C13 source paths
 - Feature codes consuming the remaining stream bytes
 - Limits for string bytes, named streams, hash capacity, and feature count
 

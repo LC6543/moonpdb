@@ -13,7 +13,7 @@ fn main {
 
 ///|
 fn usage() -> Unit {
-  println("MoonPDB 0.3.1")
+  println("MoonPDB 0.3.2")
   println("Usage:")
   println("  moonpdb summary <pdb>")
   println("  moonpdb modules <pdb>")
