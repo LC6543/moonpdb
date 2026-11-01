@@ -11,7 +11,7 @@
 
 name = "LC6543/moonpdb"
 
-version = "0.2.0"
+version = "0.3.0"
 
 readme = "README.mbt.md"
 
@@ -24,3 +24,7 @@ keywords = [ "pdb", "msf", "windows", "debug-info", "symbols", "binary" ]
 preferred_target = "wasm-gc"
 
 description = "A bounded, pure MoonBit reader for Microsoft PDB 7.0 debug information."
+
+import {
+  "moonbitlang/x@0.5.6",
+}

@@ -1055,6 +1055,7 @@ pub struct SymbolRecord {
 }
 pub fn SymbolRecord::details(Self) -> SymbolDetails
 pub fn SymbolRecord::kind(Self) -> UInt16
+pub fn SymbolRecord::name(Self) -> String?
 pub fn SymbolRecord::offset(Self) -> Int32
 
 pub struct SymbolTable {

@@ -1,5 +1,8 @@
-// import {
-//   "LC6543/moonpdb" @lib,
-// }
+import {
+  "LC6543/moonpdb" @lib,
+  "moonbitlang/core/env",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/x/fs",
+}
 
 pkgtype(kind: "executable")

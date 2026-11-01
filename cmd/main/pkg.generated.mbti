@@ -4,6 +4,7 @@ package "LC6543/moonpdb/cmd/main"
 // Values
 
 // Errors
+type CliError
 
 // Types and methods
 
