@@ -596,6 +596,28 @@ pub fn SymbolRecord::details(self : SymbolRecord) -> SymbolDetails {
 }
 
 ///|
+/// Return the symbol name when its decoded kind carries one.
+pub fn SymbolRecord::name(self : SymbolRecord) -> String? {
+  match self.details {
+    Public(value) => Some(value.name())
+    Data(value) => Some(value.name())
+    Procedure(value) => Some(value.name())
+    Thunk(value) => Some(value.name())
+    Block(value) => Some(value.name())
+    Label(value) => Some(value.name())
+    Constant(value) => Some(value.name())
+    Udt(value) => Some(value.name())
+    ObjectName(value) => Some(value.name())
+    BPRelative(value) => Some(value.name())
+    RegRelative(value) => Some(value.name())
+    ProcedureReference(value) => Some(value.name())
+    FrameProcedure(_) => None
+    ScopeEnd => None
+    Unknown(_) => None
+  }
+}
+
+///|
 pub struct SymbolTable {
   data : Bytes
   records : Array[SymbolRecord]

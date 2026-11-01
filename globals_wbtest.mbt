@@ -34,10 +34,10 @@ fn globals_test_stream(
     write_symbol_u32(buffer, 1U)
   }
   for word_index in 0..<GSI_BITMAP_WORDS {
-    let word = if word_index == 17 {
+    let word = if word_index == 34 {
       (1U << 1) | (1U << 2)
-    } else if word_index == 25 {
-      1U << 5
+    } else if word_index == 42 {
+      1U << 9
     } else {
       0U
     }
@@ -84,9 +84,9 @@ test "parse Globals GSI and find symbols by name" {
     SymbolLimits::default(),
   )
   assert_eq(globals.gsi().hash_record_count(), 3)
-  assert_eq(globals.gsi().bucket_map_index(545), Some(0))
-  assert_eq(globals.gsi().bucket_map_index(546), Some(1))
-  assert_eq(globals.gsi().bucket_map_index(805), Some(2))
+  assert_eq(globals.gsi().bucket_map_index(1089), Some(0))
+  assert_eq(globals.gsi().bucket_map_index(1090), Some(1))
+  assert_eq(globals.gsi().bucket_map_index(1353), Some(2))
   let first_hash = globals.gsi().hash_record_at(0).unwrap()
   assert_eq(first_hash.raw_offset(), 1U)
   assert_eq(first_hash.symbol_offset(), Some(0U))

@@ -55,7 +55,7 @@ pub fn GlobalsStream::find_records_by_name(
   if self.gsi.hash_records.length() == 0 {
     return []
   }
-  let expanded_bucket = (hash_string_v1(name) % 4097U).reinterpret_as_int()
+  let expanded_bucket = (hash_string_v1(name) % 4096U).reinterpret_as_int()
   let compressed = match self.gsi.bucket_map_index(expanded_bucket) {
     Some(value) => value
     None => raise InvalidGlobalIndex("expanded bucket is outside the GSI map")
@@ -95,7 +95,7 @@ pub fn GlobalsStream::find_records_by_name(
       Some(value) => value
       None => raise InvalidGlobalIndex("GSI references a missing symbol record")
     }
-    match symbol_record_name(record) {
+    match record.name() {
       Some(record_name) =>
         if record_name == name {
           if matches.length() >= self.max_results {
@@ -142,25 +142,4 @@ pub fn parse_globals_stream(
     raise InvalidGlobalIndex("Globals stream has trailing bytes")
   }
   GlobalsStream::{ gsi, symbols, max_results: limits.max_public_symbols, }
-}
-
-///|
-fn symbol_record_name(record : SymbolRecord) -> String? {
-  match record.details() {
-    Public(value) => Some(value.name())
-    Data(value) => Some(value.name())
-    Procedure(value) => Some(value.name())
-    Thunk(value) => Some(value.name())
-    Block(value) => Some(value.name())
-    Label(value) => Some(value.name())
-    Constant(value) => Some(value.name())
-    Udt(value) => Some(value.name())
-    ObjectName(value) => Some(value.name())
-    BPRelative(value) => Some(value.name())
-    RegRelative(value) => Some(value.name())
-    ProcedureReference(value) => Some(value.name())
-    FrameProcedure(_) => None
-    ScopeEnd => None
-    Unknown(_) => None
-  }
 }
