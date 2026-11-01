@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented here.
 
+## 0.3.0 - 2026-11-01
+
+### Added
+
+- File-backed inspection CLI for summaries, modules, types, symbols, publics,
+  name lookup, and PE/PDB address symbolication
+- Pinned LLVM real-world PDB and PE fixtures with SHA-256 provenance
+- Integration tests for real PDB parsing, public/global lookup, and PE mapping
+- Reproducible CLI examples in the README
+
+### Fixed
+
+- Globals name lookup uses the PDB 4096-bucket hash domain, not 4097
+
+### Documentation
+
+- Added CLI usage and fixture provenance documentation
+
 ## 0.2.0 - 2026-10-28
 
 ### Added
@@ -36,9 +54,7 @@ All notable changes to this project are documented here.
 ### Planned
 
 - Field-list member records and continuation chains
-- CLI and real PDB/PE interoperability fixtures
-- Source line lookup and address symbolication
-- Inspection CLI and real PDB interoperability fixtures
+- Full TPI/IPI hash lookup and inline-site semantics
 
 ## 0.1.0 - 2026-10-19
 

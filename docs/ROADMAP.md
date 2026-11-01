@@ -39,10 +39,10 @@ The project is developed in independently testable protocol layers.
 
 ## v0.5 - Tooling and interoperability
 
-- Inspection CLI
-- Real Windows PDB fixtures
-- Qpid-independent PDB interoperability tests
-- README examples and reproducible CI evidence
+- [x] Inspection CLI
+- [x] Pinned real Windows PDB and PE fixtures
+- [x] Qpid-independent PDB interoperability tests
+- [x] README examples and reproducible CI evidence
 
 ## v1.0 - Stable release
 

@@ -27,3 +27,12 @@ jobs:
 
       - name: Test
         run: moon test --target wasm-gc
+
+      - name: Format
+        run: moon fmt --check
+
+      - name: Build
+        run: moon build --target wasm-gc
+
+      - name: CLI smoke test
+        run: moon run cmd/main -- summary test-data/llvm/global-name-lookup.pdb

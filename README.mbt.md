@@ -20,17 +20,18 @@ separate Microsoft format that is not read by DWARF parsers.
 
 ## Status
 
-Pre-release. The API is not stable, but the container foundation is usable.
+Pre-release. The API is not stable, but the reader, CLI, and symbolication
+workflows are usable.
 
 The current milestones parse the MSF container, the PDB Info stream, TPI/IPI
 type streams, the DBI structure stream, common CodeView symbol records, and the
 Publics/GSI address index, Globals name index, C13 line information, and PE
-address mapping. DBI support includes module
-descriptors, section contributions, the section map, source-file mapping,
-EC/type-server substreams, and optional debug stream indexes. See
+address mapping. DBI support includes module descriptors, section
+contributions, the section map, source-file mapping, EC/type-server substreams,
+and optional debug stream indexes. See
 [docs/msf.md](docs/msf.md), [docs/pdb-info.md](docs/pdb-info.md),
-[docs/tpi.md](docs/tpi.md), [docs/dbi.md](docs/dbi.md), and
-[docs/symbols.md](docs/symbols.md), [docs/publics.md](docs/publics.md), and
+[docs/tpi.md](docs/tpi.md), [docs/dbi.md](docs/dbi.md),
+[docs/symbols.md](docs/symbols.md), [docs/publics.md](docs/publics.md),
 [docs/globals.md](docs/globals.md), [docs/c13.md](docs/c13.md),
 [docs/pe.md](docs/pe.md), and [docs/symbolication.md](docs/symbolication.md).
 
@@ -70,6 +71,21 @@ let report = @moonpdb.symbolicate_address(
 All parsers validate file sizes, stream counts, directory sizes, and
 allocation limits before reading untrusted data.
 
+## CLI
+
+```text
+moon run cmd/main -- summary test-data/llvm/global-name-lookup.pdb
+moon run cmd/main -- modules test-data/llvm/global-name-lookup.pdb
+moon run cmd/main -- types test-data/llvm/global-name-lookup.pdb 20
+moon run cmd/main -- symbols test-data/llvm/global-name-lookup.pdb 20
+moon run cmd/main -- publics test-data/llvm/global-name-lookup.pdb 20
+moon run cmd/main -- find test-data/llvm/global-name-lookup.pdb main
+moon run cmd/main -- address app.exe app.pdb 1 0x1000
+```
+
+The repository includes pinned LLVM PDB and PE fixtures with checksums and
+license provenance in [test-data/llvm](test-data/llvm).
+
 ## Documentation
 
 - [MSF container](docs/msf.md)
@@ -82,6 +98,7 @@ allocation limits before reading untrusted data.
 - [C13 line information](docs/c13.md)
 - [PE image mapping](docs/pe.md)
 - [Unified symbolication](docs/symbolication.md)
+- [Inspection CLI](docs/cli.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
