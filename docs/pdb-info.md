@@ -9,7 +9,8 @@ locate its named streams.
 - Version, signature, and age fields
 - 16-byte PDB GUID with conventional Windows formatting
 - Named stream string buffer
-- Serialized uint32 hash table, including present/deleted bit-vector checks
+- Serialized uint32 hash table with sparse present/deleted bit vectors;
+  zero-word deleted vectors are accepted as all-zero
 - Name-to-MSF-stream-index lookup
 - Feature codes consuming the remaining stream bytes
 - Limits for string bytes, named streams, hash capacity, and feature count

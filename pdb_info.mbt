@@ -244,8 +244,8 @@ fn read_bit_vector(
   let (word_count_raw, cursor) = read_info_u32_le(data, start, data.length())
   let word_count = info_uint_to_int(word_count_raw, "bit vector word count")
   let expected_words = be_div_ceil(capacity, 32)
-  if word_count != expected_words {
-    raise InvalidInfoValue("bit vector word count does not match capacity")
+  if word_count < 0 || word_count > expected_words {
+    raise InvalidInfoValue("bit vector word count exceeds capacity")
   }
   let words = []
   let mut cursor = cursor
@@ -253,6 +253,9 @@ fn read_bit_vector(
     let (word, next) = read_info_u32_le(data, cursor, data.length())
     words.push(word)
     cursor = next
+  }
+  for _ in word_count..<expected_words {
+    words.push(0U)
   }
   (words, cursor)
 }

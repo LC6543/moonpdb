@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.3.1 - 2026-11-01
+
+### Fixed
+
+- PDB Info accepts valid sparse deleted bit vectors with zero serialized words
+
 ## 0.3.0 - 2026-11-01
 
 ### Added

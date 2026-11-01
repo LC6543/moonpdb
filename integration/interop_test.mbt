@@ -2,6 +2,12 @@
 test "parse the real LLVM PDB and query public names" {
   let msf = @integration.parse_fixture_pdb()
   assert_eq(msf.stream_count(), 15)
+  let info = msf.pdb_info(@lib.PdbInfoLimits::default())
+  assert_eq(info.version(), 20000404U)
+  assert_eq(info.age(), 1U)
+  assert_eq(info.guid_string(), "d1069da9-aff4-4af7-ab5c-c98419e4a83d")
+  assert_eq(info.named_stream_index("/names"), Some(13))
+  assert_eq(info.named_stream_index("/LinkInfo"), Some(5))
   let dbi = msf.dbi(@lib.DbiLimits::default())
   assert_eq(dbi.module_count(), 2)
   let tpi = msf.tpi(@lib.TpiLimits::default())
