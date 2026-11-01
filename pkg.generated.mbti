@@ -169,6 +169,15 @@ pub fn BPRelativeSymbol::name(Self) -> String
 pub fn BPRelativeSymbol::offset(Self) -> Int32
 pub fn BPRelativeSymbol::type_index(Self) -> UInt32
 
+pub struct BaseClassField {
+  attributes : FieldAttributes
+  base_type : UInt32
+  offset : NumericValue
+}
+pub fn BaseClassField::attributes(Self) -> FieldAttributes
+pub fn BaseClassField::base_type(Self) -> UInt32
+pub fn BaseClassField::offset(Self) -> NumericValue
+
 pub struct BitFieldType {
   underlying_type : UInt32
   bit_size : Int32
@@ -237,6 +246,17 @@ pub struct ConstantSymbol {
 pub fn ConstantSymbol::name(Self) -> String
 pub fn ConstantSymbol::type_index(Self) -> UInt32
 pub fn ConstantSymbol::value(Self) -> NumericValue
+
+pub struct DataField {
+  attributes : FieldAttributes
+  type_index : UInt32
+  offset : NumericValue
+  name : String
+}
+pub fn DataField::attributes(Self) -> FieldAttributes
+pub fn DataField::name(Self) -> String
+pub fn DataField::offset(Self) -> NumericValue
+pub fn DataField::type_index(Self) -> UInt32
 
 pub struct DataSymbol {
   type_index : UInt32
@@ -404,10 +424,47 @@ pub fn EnumType::properties(Self) -> UInt16
 pub fn EnumType::underlying_type(Self) -> UInt32
 pub fn EnumType::unique_name(Self) -> String?
 
+pub struct EnumeratedField {
+  attributes : FieldAttributes
+  value : NumericValue
+  name : String
+}
+pub fn EnumeratedField::attributes(Self) -> FieldAttributes
+pub fn EnumeratedField::name(Self) -> String
+pub fn EnumeratedField::value(Self) -> NumericValue
+
+pub struct FieldAttributes {
+  raw : UInt16
+}
+pub fn FieldAttributes::access(Self) -> UInt16
+pub fn FieldAttributes::is_introducing_virtual(Self) -> Bool
+pub fn FieldAttributes::method_kind(Self) -> UInt16
+pub fn FieldAttributes::raw(Self) -> UInt16
+
+pub enum FieldListMember {
+  BaseClass(BaseClassField)
+  VirtualBaseClass(VirtualBaseClassField)
+  Data(DataField)
+  StaticData(StaticDataField)
+  Enumerated(EnumeratedField)
+  OverloadedMethod(OverloadedMethodField)
+  NestedType(NestedTypeField)
+  OneMethod(OneMethodField)
+  VFunctionTable(VFunctionTableField)
+  FriendClass(FriendClassField)
+  UnknownTail(UnknownFieldTail)
+}
+
 pub struct FieldListType {
   bytes : Bytes
+  members : Array[FieldListMember]
+  continuation : UInt32?
 }
 pub fn FieldListType::bytes(Self) -> Bytes
+pub fn FieldListType::continuation(Self) -> UInt32?
+pub fn FieldListType::member_at(Self, Int32) -> FieldListMember?
+pub fn FieldListType::member_count(Self) -> Int32
+pub fn FieldListType::members(Self) -> Array[FieldListMember]
 
 pub struct FileChecksum {
   subsection_offset : UInt32
@@ -438,6 +495,11 @@ pub fn FrameProcedureSymbol::flags(Self) -> UInt32
 pub fn FrameProcedureSymbol::offset_to_padding(Self) -> UInt32
 pub fn FrameProcedureSymbol::padding_frame_bytes(Self) -> UInt32
 pub fn FrameProcedureSymbol::total_frame_bytes(Self) -> UInt32
+
+pub struct FriendClassField {
+  type_index : UInt32
+}
+pub fn FriendClassField::type_index(Self) -> UInt32
 
 pub struct FunctionIdType {
   parent_scope : UInt32
@@ -663,6 +725,13 @@ pub struct NamedStream {
 pub fn NamedStream::name(Self) -> String
 pub fn NamedStream::stream_index(Self) -> Int32
 
+pub struct NestedTypeField {
+  type_index : UInt32
+  name : String
+}
+pub fn NestedTypeField::name(Self) -> String
+pub fn NestedTypeField::type_index(Self) -> UInt32
+
 pub enum NumericValue {
   Signed(Int64)
   Unsigned(UInt64)
@@ -677,6 +746,26 @@ pub struct ObjectNameSymbol {
 }
 pub fn ObjectNameSymbol::name(Self) -> String
 pub fn ObjectNameSymbol::signature(Self) -> UInt32
+
+pub struct OneMethodField {
+  attributes : FieldAttributes
+  type_index : UInt32
+  vtable_offset : Int32?
+  name : String
+}
+pub fn OneMethodField::attributes(Self) -> FieldAttributes
+pub fn OneMethodField::name(Self) -> String
+pub fn OneMethodField::type_index(Self) -> UInt32
+pub fn OneMethodField::vtable_offset(Self) -> Int32?
+
+pub struct OverloadedMethodField {
+  count : UInt16
+  method_list : UInt32
+  name : String
+}
+pub fn OverloadedMethodField::count(Self) -> UInt16
+pub fn OverloadedMethodField::method_list(Self) -> UInt32
+pub fn OverloadedMethodField::name(Self) -> String
 
 pub struct PdbInfo {
   version : UInt32
@@ -1013,6 +1102,15 @@ pub fn SourceLocation::line_end(Self) -> UInt32
 pub fn SourceLocation::line_start(Self) -> UInt32
 pub fn SourceLocation::segment(Self) -> UInt16
 
+pub struct StaticDataField {
+  attributes : FieldAttributes
+  type_index : UInt32
+  name : String
+}
+pub fn StaticDataField::attributes(Self) -> FieldAttributes
+pub fn StaticDataField::name(Self) -> String
+pub fn StaticDataField::type_index(Self) -> UInt32
+
 pub struct StringIdType {
   id : UInt32
   value : String
@@ -1197,6 +1295,7 @@ pub struct TypeTable {
   records : Array[TypeRecord]
 }
 pub fn TypeTable::data(Self) -> Bytes
+pub fn TypeTable::field_list_members(Self, UInt32) -> Array[FieldListMember] raise TpiError
 pub fn TypeTable::header(Self) -> TpiHeader
 pub fn TypeTable::record(Self, UInt32) -> TypeRecord?
 pub fn TypeTable::record_at(Self, Int32) -> TypeRecord?
@@ -1236,6 +1335,13 @@ pub fn UnionType::properties(Self) -> UInt16
 pub fn UnionType::size(Self) -> NumericValue
 pub fn UnionType::unique_name(Self) -> String?
 
+pub struct UnknownFieldTail {
+  kind : UInt16
+  payload : Bytes
+}
+pub fn UnknownFieldTail::kind(Self) -> UInt16
+pub fn UnknownFieldTail::payload(Self) -> Bytes
+
 pub struct UnknownSymbol {
   kind : UInt16
   payload : Bytes
@@ -1249,6 +1355,26 @@ pub struct UnknownType {
 }
 pub fn UnknownType::kind(Self) -> UInt16
 pub fn UnknownType::payload(Self) -> Bytes
+
+pub struct VFunctionTableField {
+  type_index : UInt32
+}
+pub fn VFunctionTableField::type_index(Self) -> UInt32
+
+pub struct VirtualBaseClassField {
+  virtual_inheritance : Bool
+  attributes : FieldAttributes
+  base_type : UInt32
+  vbptr_type : UInt32
+  vbptr_offset : NumericValue
+  vtable_index : NumericValue
+}
+pub fn VirtualBaseClassField::attributes(Self) -> FieldAttributes
+pub fn VirtualBaseClassField::base_type(Self) -> UInt32
+pub fn VirtualBaseClassField::vbptr_offset(Self) -> NumericValue
+pub fn VirtualBaseClassField::vbptr_type(Self) -> UInt32
+pub fn VirtualBaseClassField::virtual_inheritance(Self) -> Bool
+pub fn VirtualBaseClassField::vtable_index(Self) -> NumericValue
 
 // Type aliases
 

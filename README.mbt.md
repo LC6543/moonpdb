@@ -26,7 +26,8 @@ workflows are usable.
 The current milestones parse the MSF container, the PDB Info stream, TPI/IPI
 type streams, the DBI structure stream, common CodeView symbol records, and the
 Publics/GSI address index, Globals name index, C13 line information, and PE
-address mapping. DBI support includes module descriptors, section
+address mapping. TPI/IPI includes typed FIELDLIST members and LF_INDEX
+continuation chains. DBI support includes module descriptors, section
 contributions, the section map, source-file mapping, EC/type-server substreams,
 and optional debug stream indexes. See
 [docs/msf.md](docs/msf.md), [docs/pdb-info.md](docs/pdb-info.md),

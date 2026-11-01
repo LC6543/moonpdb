@@ -11,6 +11,9 @@ All notable changes to this project are documented here.
 - Pinned LLVM real-world PDB and PE fixtures with SHA-256 provenance
 - Integration tests for real PDB parsing, public/global lookup, and PE mapping
 - Reproducible CLI examples in the README
+- Typed FIELDLIST members for bases, data/static members, enumerators, methods,
+  nested types, virtual tables, and friend classes
+- Cycle-safe LF_INDEX field-list continuation resolution
 
 ### Fixed
 
@@ -53,7 +56,6 @@ All notable changes to this project are documented here.
 
 ### Planned
 
-- Field-list member records and continuation chains
 - Full TPI/IPI hash lookup and inline-site semantics
 
 ## 0.1.0 - 2026-10-19

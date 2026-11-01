@@ -514,11 +514,40 @@ pub fn ArgListType::type_index(self : ArgListType, index : Int32) -> UInt32? {
 ///|
 pub struct FieldListType {
   bytes : Bytes
+  members : Array[FieldListMember]
+  continuation : UInt32?
 }
 
 ///|
 pub fn FieldListType::bytes(self : FieldListType) -> Bytes {
   self.bytes
+}
+
+///|
+pub fn FieldListType::member_count(self : FieldListType) -> Int32 {
+  self.members.length()
+}
+
+///|
+pub fn FieldListType::member_at(
+  self : FieldListType,
+  index : Int32,
+) -> FieldListMember? {
+  if index < 0 || index >= self.members.length() {
+    None
+  } else {
+    Some(self.members[index])
+  }
+}
+
+///|
+pub fn FieldListType::members(self : FieldListType) -> Array[FieldListMember] {
+  self.members.copy()
+}
+
+///|
+pub fn FieldListType::continuation(self : FieldListType) -> UInt32? {
+  self.continuation
 }
 
 ///|
@@ -1278,7 +1307,7 @@ fn decode_type_details(
     LF_MFUNCTION => decode_member_function(payload)
     LF_ARGLIST | LF_SUBSTR_LIST =>
       TypeDetails::ArgList(decode_arg_list(payload, limits))
-    LF_FIELDLIST => TypeDetails::FieldList(FieldListType::{ bytes: payload, })
+    LF_FIELDLIST => TypeDetails::FieldList(parse_field_list(payload))
     LF_BITFIELD => decode_bitfield(payload)
     LF_ARRAY => decode_array(payload)
     LF_CLASS | LF_STRUCTURE | LF_INTERFACE => decode_aggregate(kind, payload)

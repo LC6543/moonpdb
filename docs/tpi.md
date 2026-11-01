@@ -15,6 +15,10 @@ sequence. MoonPDB exposes one parser for both layouts.
   argument lists, bit fields, arrays, classes/structures/interfaces, unions,
   enums, aliases, labels, function IDs, string IDs, build info, UDT source
   records, and type-server records
+- Typed FIELDLIST members: base/virtual-base classes, data and static members,
+  enumerators, overloaded and single methods, nested types, virtual-function
+  tables, friend classes, and unknown tails
+- `LF_INDEX` continuation chains with cycle detection
 - Raw payload preservation for unknown leaves
 - Structured errors for invalid headers, truncated records, count mismatches,
   malformed known records, and exceeded limits
@@ -35,10 +39,10 @@ type-index range check before indexing into the parsed record array.
 
 ## Current boundary
 
-`LF_FIELDLIST` payloads are currently preserved as bounded raw bytes. Member
-subrecords, `LF_INDEX` continuation chains, full type-hash lookup, and
-type-name indexes are subsequent milestones. TPI/IPI parsing does not yet
-resolve a type graph recursively.
+`LF_FIELDLIST` subrecords are decoded and continuation chains can be resolved
+with `TypeTable::field_list_members`. Full type-hash lookup, nested field-list
+type-name indexes, and recursive semantic type-graph expansion are subsequent
+milestones.
 
 ## Format references
 

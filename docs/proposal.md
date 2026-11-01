@@ -26,8 +26,8 @@ Mooncakes 已有 DWARF、ELF 和数据库接口，但没有 Microsoft PDB 7.0 �
 
 - 已发布 `LC6543/moonpdb@0.1.0`：MSF superblock、block map、stream directory、
   PDB Info、GUID/age、named streams 和 feature codes。
-- 当前有效源码约 9,200 行、测试约 2,400 行；`moon check --deny-warn` 和
-  `moon test --deny-warn` 通过，现有 56 个测试。
+- 当前有效源码约 10,000 行、测试约 2,600 行；`moon check --deny-warn` 和
+  `moon test --deny-warn` 通过，现有 60 个测试。
 - 已配置 GitHub Actions、Apache-2.0、README、安全策略、贡献指南和版本记录。
 
 ## 本轮新增与后续里程碑
@@ -35,7 +35,8 @@ Mooncakes 已有 DWARF、ELF 和数据库接口，但没有 Microsoft PDB 7.0 �
 1. TPI/IPI：56 字节头部、类型索引范围、记录框架、simple type、modifier、pointer、
    procedure、member function、arglist、bitfield、array、class/struct/interface、
    union、enum、alias、label、function/member/string ID、build info、UDT source line、
-   type server 和未知记录保留；field-list 子记录在下一功能中类型化。
+   type server 和未知记录保留；基类、成员、静态成员、枚举值、方法、嵌套类型、
+   虚表、友元类及 `LF_INDEX` 连续字段表也已类型化。
 2. 已完成 DBI 头、模块列表、section contributions、section map、文件信息、EC 子流和
    可选调试头；后续补模块调试流中的符号与行号语义。
 3. 已完成符号记录框架、模块调试流，以及 `S_PUB32`、`S_GDATA32`、`S_LDATA32`、
@@ -65,6 +66,6 @@ Microsoft `microsoft-pdb` 公开头和 LLVM CodeView 文档，仓库持续记录
 ## 当前申报状态
 
 本轮重点回应初审反馈：把完整 PDB 7.0 兼容拆成可验收的层和记录清单，并将有效源码从
-约 700 行扩展到约 9,200 行，新增 TPI/IPI、DBI、CodeView 符号、Publics、
+约 700 行扩展到约 10,000 行，新增 TPI/IPI、DBI、CodeView 符号、Publics、
 Globals 名称索引、C13 行号、PE RVA 映射、统一符号化、可运行 CLI 和真实
 PDB/PE 互操作测试。

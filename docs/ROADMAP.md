@@ -14,7 +14,7 @@ The project is developed in independently testable protocol layers.
 - [x] Type-index ranges and CodeView record framing
 - [x] Simple, modifier, pointer, procedure, aggregate, enum, array, and alias types
 - [x] Bounded record traversal and raw preservation for unknown leaves
-- [ ] Field-list member records and LF_INDEX continuation chains
+- [x] Field-list member records and LF_INDEX continuation chains
 - [ ] Full type hashing and lookup acceleration
 
 ## v0.3 - Symbols
