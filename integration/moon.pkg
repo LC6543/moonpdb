@@ -1,0 +1,4 @@
+import {
+  "LC6543/moonpdb" @lib,
+  "moonbitlang/x/fs",
+}

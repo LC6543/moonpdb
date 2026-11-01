@@ -1,0 +1,24 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "LC6543/moonpdb/integration"
+
+import {
+  "LC6543/moonpdb",
+  "moonbitlang/x/fs",
+}
+
+// Values
+pub fn parse_fixture_pdb() -> @moonpdb.MsfFile raise @fs.IOError
+
+pub fn parse_fixture_pe() -> @moonpdb.PeImage raise @fs.IOError
+
+pub fn read_global_name_pdb() -> Bytes raise @fs.IOError
+
+pub fn read_llvm_pe() -> Bytes raise @fs.IOError
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
